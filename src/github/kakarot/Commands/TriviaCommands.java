@@ -86,7 +86,6 @@ public class TriviaCommands extends BaseCommand {
                 player.sendMessage(CC.translate("&9Categoria: &b" + trivia.getCategory()));
                 player.sendMessage(CC.translate("&9Pregunta: &b" + trivia.getQuestion()));
                 player.sendMessage(CC.translate("&9Tiempo limite (segundos): &b" + trivia.getTimeLimit()));
-                player.sendMessage(CC.translate("&9Habilitada: &b" + trivia.isEnabled()));
                 if(trivia.getAnswers() != null) {
                     player.sendMessage(CC.translate("&9Respuestas:"));
                     for(String answer : trivia.getAnswers()) {
@@ -99,6 +98,7 @@ public class TriviaCommands extends BaseCommand {
                         player.sendMessage(CC.translate("&b- /" + reward));
                     }
                 }else player.sendMessage(CC.translate("&9Recompensas: &b" + "No configurado aún"));
+                player.sendMessage(CC.translate("&9Habilitada: &b" + trivia.isEnabled()));
                 player.sendMessage(CC.translate("&1--------------------------------------"));
                 break;
             case "addanswer":
