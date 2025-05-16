@@ -43,7 +43,7 @@ public class Main extends JavaPlugin {
         Bukkit.getConsoleSender().sendMessage("By: SpaceyDCO");
         //Trivia
         readTriviaConfig();
-        TriviasRunnable.runnableTrivias.runTaskTimer(this, (60*20), (60*20));
+        TriviasRunnable.runnableTrivias.runTaskTimer(this, (2700*20), (2700*20));
         activeTrivia = false;
         //Trivia
     }
