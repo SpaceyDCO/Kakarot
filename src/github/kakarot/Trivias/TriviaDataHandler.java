@@ -20,7 +20,7 @@ import java.util.logging.Level;
 
 @Getter
 public class TriviaDataHandler {
-    public static Map<String, TriviasData> triviasDataMap;
+    public static Map<String, TriviasData> triviasDataMap = new ConcurrentHashMap<>();
     private final TriviasData data;
     private final String triviaID;
     public TriviaDataHandler(String triviaID) {

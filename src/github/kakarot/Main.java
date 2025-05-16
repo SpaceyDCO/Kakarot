@@ -36,13 +36,13 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        TriviaDataHandler.triviasDataMap = readTriviaConfig();
         instance = this;
         classesRegistration.loadCommands("github.kakarot.Commands");
         classesRegistration.loadListeners("github.kakarot.Events");
         Bukkit.getConsoleSender().sendMessage("Activated plugin Kakarot");
         Bukkit.getConsoleSender().sendMessage("By: SpaceyDCO");
         //Trivia
+        readTriviaConfig();
         TriviasRunnable.runnableTrivias.runTaskTimer(this, (60*20), (60*20));
         activeTrivia = false;
         //Trivia
@@ -54,13 +54,13 @@ public class Main extends JavaPlugin {
     }
 
     //TRIVIA
-    private ConcurrentHashMap<String, TriviasData> readTriviaConfig() {
+    private void readTriviaConfig() {
         File dataFolder = getDataFolder();
         File saveFile = new File(dataFolder, "trivias_data.json");
         Path savePath = saveFile.toPath();
         if(!Files.exists(savePath)) {
             Bukkit.getLogger().warning(saveFile.getName() + " not found. No trivia data to load. Will set an empty map...");
-            return new ConcurrentHashMap<>();
+            TriviaDataHandler.triviasDataMap = new ConcurrentHashMap<>();
         }
         Gson gson = new GsonBuilder().create();
         Type typeOfMap = new TypeToken<ConcurrentHashMap<String, TriviasData>>(){}.getType();
@@ -68,17 +68,18 @@ public class Main extends JavaPlugin {
             Map<String, TriviasData> loadedMap = gson.fromJson(reader, typeOfMap);
             if(loadedMap != null) {
                 Bukkit.getLogger().info("Successfully read " + loadedMap.size() + " trivia entries");
-                return gson.fromJson(reader, typeOfMap);
+                TriviaDataHandler.triviasDataMap.clear();
+                TriviaDataHandler.triviasDataMap.putAll(loadedMap);
             }else {
                 Bukkit.getLogger().log(Level.SEVERE, saveFile.getName() + " is empty or contains null, an empty map will be set instead...");
-                return new ConcurrentHashMap<>();
+                TriviaDataHandler.triviasDataMap = new ConcurrentHashMap<>();
             }
         }catch(IOException e) {
             Bukkit.getLogger().log(Level.SEVERE, "Could not read trivias data, send log to SpaceyDCO!", e);
-            return new ConcurrentHashMap<>();
+            TriviaDataHandler.triviasDataMap = new ConcurrentHashMap<>();
         }catch(JsonSyntaxException e) {
             Bukkit.getLogger().log(Level.SEVERE, "Error parsing JSON from " + saveFile.getName() + ", .json has the wrong syntax!", e);
-            return new ConcurrentHashMap<>();
+            TriviaDataHandler.triviasDataMap = new ConcurrentHashMap<>();
         }
     }
     //TRIVIA

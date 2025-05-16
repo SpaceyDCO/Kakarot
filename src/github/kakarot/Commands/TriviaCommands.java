@@ -80,11 +80,13 @@ public class TriviaCommands extends BaseCommand {
                     return;
                 }
                 TriviasData trivia = TriviaDataHandler.getTrivia(args[1].toUpperCase().trim());
+                if(trivia == null) return;
                 player.sendMessage(CC.translate("&1--------------------------------------"));
                 player.sendMessage(CC.translate("&9Datos para trivia con id &b" + args[1].trim().toUpperCase() + "&9:"));
                 player.sendMessage(CC.translate("&9Categoria: &b" + trivia.getCategory()));
                 player.sendMessage(CC.translate("&9Pregunta: &b" + trivia.getQuestion()));
                 player.sendMessage(CC.translate("&9Tiempo limite (segundos): &b" + trivia.getTimeLimit()));
+                player.sendMessage(CC.translate("&9Habilitada: &b" + trivia.isEnabled()));
                 if(trivia.getAnswers() != null) {
                     player.sendMessage(CC.translate("&9Respuestas:"));
                     for(String answer : trivia.getAnswers()) {
