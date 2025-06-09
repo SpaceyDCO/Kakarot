@@ -8,6 +8,7 @@ import github.kakarot.Tools.Commands.CommandArgs;
 import github.kakarot.Tools.Input.PlayerInput;
 import github.kakarot.Trivias.TriviaDataHandler;
 import github.kakarot.Trivias.TriviasData;
+import github.kakarot.Trivias.TriviasRunnable;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
@@ -212,6 +213,22 @@ public class TriviaCommands extends BaseCommand {
                 tHandler.save();
                 player.sendMessage(CC.translate("&9Tiempo límite actualizado exitosamente."));
                 break;
+            case "force":
+                if(args.length < 2) {
+                    player.sendMessage(CC.translate("&cUso correcto: /trivia force <TriviaID>"));
+                    return;
+                }
+                if(TriviaDataHandler.getTrivia(args[1].toUpperCase().trim()) == null) {
+                    player.sendMessage(CC.translate("&cTrivia con ID " + args[1] + " no existe"));
+                    return;
+                }
+                if(Main.activeTrivia) {
+                    player.sendMessage(CC.translate("&cYa hay una trivia activa, no se puede forzar otra"));
+                    return;
+                }
+                TriviasRunnable.forceRandomTrivia();
+                player.sendMessage(CC.translate("&aSe forzó la trivia " + args[1] + " exitosamente."));
+                break;
             default:
                 sendCorrectUsage(player);
         }
@@ -228,6 +245,7 @@ public class TriviaCommands extends BaseCommand {
         player.sendMessage(CC.translate("&b/trivia setEnabled <ID> -> &9Activa/Desactiva una trivia"));
         player.sendMessage(CC.translate("&b/trivia info <ID> -> &9Muestra información de una trivia"));
         player.sendMessage(CC.translate("&b/trivia setTimeLimit <ID> -> &9Modifica el tiempo límite para responder esa trivia"));
+        player.sendMessage(CC.translate("&b/trivia force <ID> -> &9Fuerza una trivia a ejecutarse"));
         player.sendMessage(CC.translate("&b/trivia list -> &9Muestra la lista de trivias registradas"));
         player.sendMessage(CC.translate("&1--------------------------------------"));
     }

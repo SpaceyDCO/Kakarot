@@ -25,7 +25,7 @@ public class PlayerChatEvent implements Listener {
                     if(rewards.contains("{p}")) rewards = rewards.replace("{p}", event.getPlayer().getName());
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), rewards);
                 }
-                TriviasRunnable.reset();
+                TriviasRunnable.reset(false);
                 break;
             }
         }
