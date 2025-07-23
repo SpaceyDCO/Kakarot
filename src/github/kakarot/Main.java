@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+import static github.kakarot.Tools.Handler.Partys.DataManager.PartyManager.loadPartiesFromFile;
+import static github.kakarot.Tools.Handler.Partys.DataManager.PartyManager.savePartiesToFile;
+
 @Getter
 public class Main extends JavaPlugin {
     public static boolean activeTrivia;
@@ -46,11 +49,14 @@ public class Main extends JavaPlugin {
         TriviasRunnable.runnableTrivias.runTaskTimer(this, TriviasRunnable.TriviaCooldown, TriviasRunnable.TriviaCooldown);
         activeTrivia = false;
         //Trivia
+
+        loadPartiesFromFile();
     }
     @Override
     public void onDisable() {
         Bukkit.getConsoleSender().sendMessage("Deactivating plugin Kakarot");
         TriviasRunnable.runnableTrivias.cancel();
+        savePartiesToFile();
     }
 
     //TRIVIA
@@ -83,4 +89,5 @@ public class Main extends JavaPlugin {
         }
     }
     //TRIVIA
+
 }
