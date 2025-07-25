@@ -1,10 +1,10 @@
-package github.kakarot.Tools.Data.Party;
+package github.kakarot.Parties;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import java.util.*;
-import static github.kakarot.Tools.Handler.Partys.DataManager.PartyManager.updateParty;
+import static github.kakarot.Parties.Managers.PartyManager.updateParty;
 
 @Getter
 @Setter

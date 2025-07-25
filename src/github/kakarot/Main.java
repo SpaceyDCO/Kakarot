@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import github.kakarot.Tools.ClassesRegistration;
 import github.kakarot.Tools.Commands.CommandFramework;
-import github.kakarot.Tools.Handler.Partys.DataManager.PartyManager;
+import github.kakarot.Parties.Managers.PartyManager;
 import github.kakarot.Trivias.TriviaDataHandler;
 import github.kakarot.Trivias.TriviasData;
 import github.kakarot.Trivias.TriviasRunnable;

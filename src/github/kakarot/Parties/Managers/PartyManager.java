@@ -1,6 +1,6 @@
-package github.kakarot.Tools.Handler.Partys.DataManager;
+package github.kakarot.Parties.Managers;
 import com.google.gson.reflect.TypeToken;
-import github.kakarot.Tools.Data.Party.Party;
+import github.kakarot.Parties.Party;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.libs.com.google.gson.Gson;
 import org.bukkit.entity.Player;

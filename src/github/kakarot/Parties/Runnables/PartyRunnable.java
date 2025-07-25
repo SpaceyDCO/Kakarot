@@ -1,6 +1,6 @@
-package github.kakarot.Tools.Handler.Partys.RunnableManager;
+package github.kakarot.Parties.Runnables;
 
-import github.kakarot.Tools.Handler.Partys.DataManager.PartyManager;
+import github.kakarot.Parties.Managers.PartyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
