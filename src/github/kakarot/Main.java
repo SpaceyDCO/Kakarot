@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import github.kakarot.Tools.ClassesRegistration;
 import github.kakarot.Tools.Commands.CommandFramework;
+import github.kakarot.Tools.Handler.Partys.DataManager.PartyManager;
 import github.kakarot.Trivias.TriviaDataHandler;
 import github.kakarot.Trivias.TriviasData;
 import github.kakarot.Trivias.TriviasRunnable;
@@ -25,8 +26,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
-import static github.kakarot.Tools.Handler.Partys.DataManager.PartyManager.loadPartiesFromFile;
-import static github.kakarot.Tools.Handler.Partys.DataManager.PartyManager.savePartiesToFile;
 
 @Getter
 public class Main extends JavaPlugin {
@@ -50,13 +49,13 @@ public class Main extends JavaPlugin {
         activeTrivia = false;
         //Trivia
 
-        loadPartiesFromFile();
+        PartyManager.loadPartiesFromFile();
     }
     @Override
     public void onDisable() {
         Bukkit.getConsoleSender().sendMessage("Deactivating plugin Kakarot");
         TriviasRunnable.runnableTrivias.cancel();
-        savePartiesToFile();
+        PartyManager.savePartiesToFile();
     }
 
     //TRIVIA
