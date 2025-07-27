@@ -3,6 +3,7 @@ package github.kakarot;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Tools.ClassesRegistration;
 import github.kakarot.Tools.Commands.CommandFramework;
 import github.kakarot.Parties.Managers.PartyManager;
@@ -33,6 +34,7 @@ public class Main extends JavaPlugin {
     public static Main instance;
 
     @Getter
+    private IPartyManager partyManager;
     private final CommandFramework commandFramework = new CommandFramework(this);
     private final ClassesRegistration classesRegistration = new ClassesRegistration();
 
@@ -47,15 +49,13 @@ public class Main extends JavaPlugin {
         readTriviaConfig();
         TriviasRunnable.runnableTrivias.runTaskTimer(this, TriviasRunnable.TriviaCooldown, TriviasRunnable.TriviaCooldown);
         activeTrivia = false;
-        //Trivia
-
-        PartyManager.loadPartiesFromFile();
+        //Parties
+        this.partyManager = new PartyManager(this);
     }
     @Override
     public void onDisable() {
         Bukkit.getConsoleSender().sendMessage("Deactivating plugin Kakarot");
         TriviasRunnable.runnableTrivias.cancel();
-        PartyManager.savePartiesToFile();
     }
 
     //TRIVIA

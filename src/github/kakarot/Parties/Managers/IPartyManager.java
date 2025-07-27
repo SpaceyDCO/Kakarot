@@ -1,68 +1,61 @@
 package github.kakarot.Parties.Managers;
 
 import github.kakarot.Parties.Party;
+import org.bukkit.entity.Player;
 
-import java.util.Collection;
-import java.util.UUID;
+import java.util.Optional;
 
 public interface IPartyManager {
     /**
-     * Crea una nueva party con un nombre y líder específico.
-     *
-     * @param name Nombre de la party.
-     * @param leader UUID del jugador líder.
-     * @return Party creada.
+     * Creates a new Party with the provided player as a leader
+     * @param leader The player creating the party
      */
-    Party createParty(String name, UUID leader);
+    void createParty(Player leader);
+
     /**
-     * Disuelve una party dado su ID.
-     *
-     * @param partyId UUID de la party a disolver.
+     * Disbands a party
+     * @param party The party to be disbanded
      */
-    void disbandParty(UUID partyId);
+    void disbandParty(Party party);
+
     /**
-     * Obtiene la party a la que pertenece un jugador.
-     *
-     * @param playerId UUID del jugador.
-     * @return La party a la que pertenece el jugador, o null si no pertenece a ninguna.
+     * Sends an invitation request to a party
+     * @param leader The leader of the party
+     * @param target The player to be invited
      */
-    Party getPartyOf(UUID playerId);
+    void invitePlayer(Player leader, Player target);
     /**
-     * Verifica si un jugador pertenece a una party.
-     *
-     * @param playerId UUID del jugador.
-     * @return true si pertenece a una party, false en caso contrario.
+     * Accepts an incoming invite to a party
+     * @param player The player accepting the invite
      */
-    boolean isInParty(UUID playerId);
+    void acceptInvite(Player player);
     /**
-     * Obtiene una party por su ID.
-     *
-     * @param partyId UUID de la party.
-     * @return La party correspondiente, o null si no existe.
+     * Removes the player from their current party,
+     * if they are the leader, the party is disbanded
+     * @param player The player leaving the party
      */
-    Party getPartyById(UUID partyId);
+    void leaveParty(Player player);
     /**
-     * Obtiene todas las parties existentes.
-     *
-     * @return Colección inmodificable de todas las parties.
+     * Kicks a given player from their current party
+     * @param player Player to be kicked
      */
-    Collection<Party> getAllParties();
+    void kickPlayer(Player player);
     /**
-     * Elimina todas las parties existentes y disuelve cada una de ellas.
+     * Obtains the party this player is in, if any
+     * @param player The player to be scanned
+     * @return The party the player is in, null if not in any party
      */
-    void clearAll();
+    Party getParty(Player player);
     /**
-     * Actualiza los datos de una party existente o la añade si no existe.
-     *
-     * @param party Party a actualizar.
+     * Checks whether this player is in a valid party
+     * @param player The player to be checked
+     * @return true if they're in party, false otherwise
      */
-    void updateParty(Party party);
+    boolean isInParty(Player player);
     /**
-     * Guarda las parties actualmente registradas en el servidor a la config
+     * Clears any pending invites from parties,
+     * called when the player joins a party, invitation time expires, or logs off
+     * @param player Player whose invites will be cleared
      */
-    void savePartiesToFile();
-    /**
-     * Lee las parties registradas en la config
-     */
-    void loadPartiesFromFile();
+    void clearInvites(Player player);
 }
