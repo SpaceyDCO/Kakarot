@@ -55,7 +55,7 @@ public class Main extends JavaPlugin {
         Bukkit.getConsoleSender().sendMessage("By: SpaceyDCO");
         //Trivia
         readTriviaConfig();
-        TriviasRunnable.runnableTrivias.runTaskTimer(this, TriviasRunnable.TriviaCooldown, TriviasRunnable.TriviaCooldown);
+        //TriviasRunnable.runnableTrivias.runTaskTimer(this, TriviasRunnable.TriviaCooldown, TriviasRunnable.TriviaCooldown); Disabled trivia runnable
         activeTrivia = false;
     }
     @Override
