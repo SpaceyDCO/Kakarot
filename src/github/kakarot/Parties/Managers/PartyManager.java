@@ -13,7 +13,6 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.*;
 
 public class PartyManager implements IPartyManager {
-    private final int INVITATION_TIMEOUT = 60; //In seconds
     private final Map<UUID, Party> playerPartyMap = new HashMap<>();
     private final Map<UUID, BukkitTask> invitedPlayers = new HashMap<>();
     private final Map<UUID, UUID> invitedPlayersMap = new HashMap<>(); //Key: Player invited | Value: Player that sent the invitation
@@ -61,6 +60,10 @@ public class PartyManager implements IPartyManager {
             leader.sendMessage(CC.translate(PARTY_PREFIX + " &9You cannot invite yourself."));
             return;
         }
+        if(!target.isOnline()) {
+            leader.sendMessage(CC.translate(PARTY_PREFIX + " &9That player is not online."));
+            return;
+        }
         if(isInParty(target)) {
             leader.sendMessage(CC.translate(PARTY_PREFIX + " &b" + target.getName() + " &9Is already in a party"));
             return;
@@ -84,6 +87,7 @@ public class PartyManager implements IPartyManager {
         message.addExtra(acceptComponent);
         message.addExtra(denyComponent);
         target.spigot().sendMessage(message);
+        int INVITATION_TIMEOUT = 60; //In seconds
         long inviteTimeout = INVITATION_TIMEOUT * 20;
         BukkitTask task = plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             clearInvites(target);
@@ -148,7 +152,7 @@ public class PartyManager implements IPartyManager {
         }
         party.removeMember(player.getUniqueId());
         playerPartyMap.remove(player.getUniqueId());
-        party.broadcast(CC.translate(CC.translate(PARTY_PREFIX + " &b" + player.getName() + " &9Left the party.")));
+        party.broadcast(CC.translate(PARTY_PREFIX + " &b" + player.getName() + " &9Left the party."));
         player.sendMessage(CC.translate(PARTY_PREFIX + " &9You have left the party."));
     }
 

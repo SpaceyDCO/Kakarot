@@ -9,13 +9,11 @@ public interface IPartyManager {
      * @param leader The player creating the party
      */
     void createParty(Player leader);
-
     /**
      * Disbands a party
      * @param party The party to be disbanded
      */
     void disbandParty(Party party);
-
     /**
      * Sends an invitation request to a party
      * @param leader The leader of the party
