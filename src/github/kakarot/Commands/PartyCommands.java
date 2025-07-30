@@ -9,6 +9,7 @@ import github.kakarot.Tools.Commands.BaseCommand;
 import github.kakarot.Tools.Commands.Command;
 import github.kakarot.Tools.Commands.CommandArgs;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -43,6 +44,9 @@ public class PartyCommands extends BaseCommand {
                 break;
             case "leave":
                 partyManager.leaveParty(player);
+                break;
+            case "kick":
+                handleKickCommand(player, args, partyManager);
                 break;
             case "list":
                 Optional<Party> optional = partyManager.getParty(player);
@@ -89,7 +93,10 @@ public class PartyCommands extends BaseCommand {
         for(UUID member : members) {
             Player p = Bukkit.getPlayer(member);
             if(p != null) {
-                player.sendMessage(CC.translate("&9- &b" + p.getName() + " &9| " + (p.isOnline() ? "&9ONLINE" : "&9OFFLINE") + (party.isLeader(member) ? " &b(Leader)" : "")));
+                player.sendMessage(CC.translate("&9- &b" + p.getName() + (party.isLeader(member) ? " &9(Leader)" : "")));
+            }else {
+                OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(member);
+                if(offlinePlayer != null) player.sendMessage(CC.translate("&9- &b" + offlinePlayer.getName() + (party.isLeader(member) ? " &9(Leader)" : "") + " &9| OFFLINE"));
             }
         }
     }
@@ -104,5 +111,18 @@ public class PartyCommands extends BaseCommand {
             return;
         }
         manager.disbandParty(party);
+    }
+    private void handleKickCommand(Player player, String[] args, IPartyManager manager) { //Add something to kick offline players
+        if(args.length != 2) {
+            player.sendMessage(CC.translate(PARTY_PREFIX + " &9Usage: /party kick <player>"));
+            return;
+        }
+        Player p = Bukkit.getPlayer(args[1]);
+        try {
+            manager.kickPlayer(player, p);
+        }catch(NullPointerException e) {
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(args[1]);
+            manager.kickOfflinePlayer(player, offlinePlayer);
+        }
     }
 }

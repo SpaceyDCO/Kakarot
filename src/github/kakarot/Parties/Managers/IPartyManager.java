@@ -1,6 +1,8 @@
 package github.kakarot.Parties.Managers;
 
+import com.google.common.annotations.Beta;
 import github.kakarot.Parties.Party;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.util.Optional;
@@ -39,11 +41,19 @@ public interface IPartyManager {
      */
     void leaveParty(Player player);
     /**
-     * Kicks a given player from their current party
+     * Kicks an online player from their current party
      * @param leader The leader of the party (Usually the player running the command)
      * @param target The player to be kicked
+     * @throws NullPointerException If the player to be kicked if null (or is offline)
      */
-    void kickPlayer(Player leader, Player target);
+    void kickPlayer(Player leader, Player target) throws NullPointerException;
+    /**
+     * Kicks an offline player from their current party
+     * @param leader The leader of the party
+     * @param target The player to be kicked
+     */
+    @Beta
+    void kickOfflinePlayer(Player leader, OfflinePlayer target);
     /**
      * Obtains the party this player is in, if any
      * @param player The player to be scanned

@@ -7,6 +7,7 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -91,14 +92,14 @@ public class PartyManager implements IPartyManager {
         long inviteTimeout = INVITATION_TIMEOUT * 20L;
         BukkitTask task = plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             clearInvites(target);
-            leader.sendMessage(CC.translate(PARTY_PREFIX + " &9Invitation request to player &b" + target.getName() + " &9has expired."));
-            target.sendMessage(CC.translate(PARTY_PREFIX + " &9Invitation request from player &b " + leader.getName() + " &9has expired."));
+            if(leader.isOnline()) leader.sendMessage(CC.translate(PARTY_PREFIX + " &9Invitation request to player &b" + target.getName() + " &9has expired."));
+            if(target.isOnline()) target.sendMessage(CC.translate(PARTY_PREFIX + " &9Invitation request from player &b " + leader.getName() + " &9has expired."));
         }, inviteTimeout);
         invitedPlayers.put(targetID, task);
     }
 
     @Override
-    public void acceptInvite(Player player) {
+    public void acceptInvite(Player player) { //If leader is offline at the moment of accepting an invite, it'll say the party no longer exists, should be changed to getOfflinePlayer
         UUID targetID = player.getUniqueId();
         if(!invitedPlayers.containsKey(targetID)) {
             player.sendMessage(CC.translate(PARTY_PREFIX + " &bYou do not have any invitation request pending"));
@@ -127,11 +128,11 @@ public class PartyManager implements IPartyManager {
     public void denyInvite(Player player) {
         UUID targetID = player.getUniqueId();
         if(!invitedPlayers.containsKey(targetID)) {
-            player.sendMessage(CC.translate(PARTY_PREFIX + " &bYou do not have any invitation request pending"));
+            player.sendMessage(CC.translate(PARTY_PREFIX + " &bYou do not have any invitation request pending."));
             return;
         }
         invitedPlayers.get(targetID).cancel();
-        player.sendMessage(CC.translate(PARTY_PREFIX + " &9You have denied the party invitation request"));
+        player.sendMessage(CC.translate(PARTY_PREFIX + " &9You have denied the party invitation request."));
         Player leader = Bukkit.getPlayer(invitedPlayersMap.get(targetID));
         if(leader != null) {
             if(leader.isOnline()) leader.sendMessage(CC.translate(PARTY_PREFIX + " &b" + player.getName() + " &9Has denied your party invitation request."));
@@ -144,7 +145,7 @@ public class PartyManager implements IPartyManager {
     public void leaveParty(Player player) {
         Optional<Party> optional = getParty(player);
         if(!optional.isPresent()) {
-            player.sendMessage(CC.translate(PARTY_PREFIX + " &9You are not in a party"));
+            player.sendMessage(CC.translate(PARTY_PREFIX + " &9You are not in a party."));
             return;
         }
         Party party = optional.get();
@@ -161,17 +162,47 @@ public class PartyManager implements IPartyManager {
     @Override
     public void kickPlayer(Player leader, Player target) {
         Optional<Party> optional = getParty(leader);
-        if(!optional.isPresent()) return;
+        if(!optional.isPresent()) {
+            leader.sendMessage(CC.translate(PARTY_PREFIX + " &9You are not in a party"));
+            return;
+        }
+        Party party = optional.get();
+        if(!party.isLeader(leader.getUniqueId())) {
+            leader.sendMessage(CC.translate(PARTY_PREFIX + " &9You are not the leader of this party."));
+            return;
+        }
+        if(leader.equals(target)) {
+            leader.sendMessage(CC.translate(PARTY_PREFIX + " &9You cannot kick yourself."));
+            return;
+        }
+        if(target == null) throw new NullPointerException();
+        if(party.getMembers().contains(target.getUniqueId())) {
+            leaveParty(target);
+            leader.sendMessage(CC.translate(PARTY_PREFIX + " &b" + target.getName() + " &9Has been kicked from your party."));
+        }else {
+            leader.sendMessage(CC.translate(PARTY_PREFIX + " &b" + target.getName() + " &9Is not in your party."));
+        }
+    }
+
+    @Override
+    public void kickOfflinePlayer(Player leader, OfflinePlayer target) {
+        Optional<Party> optional = getParty(leader);
+        if(!optional.isPresent()) {
+            leader.sendMessage(CC.translate(PARTY_PREFIX + " &9You are not in a party."));
+            return;
+        }
         Party party = optional.get();
         if(!party.isLeader(leader.getUniqueId())) {
             leader.sendMessage(CC.translate(PARTY_PREFIX + " &9You are not the leader of this party."));
             return;
         }
         if(party.getMembers().contains(target.getUniqueId())) {
-            leaveParty(target);
+            party.removeMember(target.getUniqueId());
+            playerPartyMap.remove(target.getUniqueId());
+            party.broadcast(CC.translate(PARTY_PREFIX + " &b" + target.getName() + " &9Left the party."));
             leader.sendMessage(CC.translate(PARTY_PREFIX + " &b" + target.getName() + " &9Has been kicked from your party."));
         }else {
-            leader.sendMessage(CC.translate(PARTY_PREFIX + " &b" + target.getName() + " &9Is not in your party"));
+            leader.sendMessage(CC.translate(PARTY_PREFIX + " &b" + target.getName() + " &9Is not in your party."));
         }
     }
 
