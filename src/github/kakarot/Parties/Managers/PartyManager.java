@@ -31,7 +31,6 @@ public class PartyManager implements IPartyManager {
         Party newParty = new Party(leader.getUniqueId());
         playerPartyMap.put(leader.getUniqueId(), newParty);
         leader.sendMessage(CC.translate("&aCreated a new party!"));
-        leader.sendMessage(CC.translate("use /party invite <player> to invite new players"));
     }
 
     @Override
@@ -78,13 +77,13 @@ public class PartyManager implements IPartyManager {
         leader.sendMessage(CC.translate(PARTY_PREFIX + " &9Sent party invitation request to &b" + target.getName()));
         target.sendMessage(CC.translate(PARTY_PREFIX + "&b " + leader.getName() + " &9Has invited you to their party"));
         invitedPlayersMap.put(targetID, leader.getUniqueId());
-        TextComponent message = new TextComponent("  ");
+        TextComponent message = new TextComponent("");
         TextComponent acceptComponent = new TextComponent(CC.translate("&a[ACCEPT]"));
         acceptComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party accept"));
         acceptComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent[] {new TextComponent(CC.translate("&7Click to join"))}));
-        TextComponent denyComponent = new TextComponent(CC.translate("&c[DENY]"));
-        acceptComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party deny"));
-        acceptComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent[] {new TextComponent(CC.translate("&7Click to deny"))}));
+        TextComponent denyComponent = new TextComponent(CC.translate(" &c[DENY]"));
+        denyComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/party deny"));
+        denyComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent[] {new TextComponent(CC.translate("&7Click to deny"))}));
         message.addExtra(acceptComponent);
         message.addExtra(denyComponent);
         target.spigot().sendMessage(message);

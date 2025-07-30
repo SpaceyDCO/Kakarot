@@ -40,6 +40,7 @@ public class PartyCommands extends BaseCommand {
                 break;
             case "deny":
                 partyManager.denyInvite(player);
+                break;
             case "leave":
                 partyManager.leaveParty(player);
                 break;

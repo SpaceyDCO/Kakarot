@@ -34,7 +34,7 @@ public class Main extends JavaPlugin {
     public static Main instance;
 
     @Getter
-    private IPartyManager partyManager;
+    private IPartyManager partyManager; //Parties
     private final CommandFramework commandFramework = new CommandFramework(this);
     private final ClassesRegistration classesRegistration = new ClassesRegistration();
 
