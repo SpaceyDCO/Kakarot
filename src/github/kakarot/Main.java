@@ -1,5 +1,6 @@
 package github.kakarot;
 
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -11,7 +12,6 @@ import github.kakarot.Trivias.TriviaDataHandler;
 import github.kakarot.Trivias.TriviasData;
 import github.kakarot.Trivias.TriviasRunnable;
 import lombok.Getter;
-import net.minecraft.util.com.google.common.reflect.TypeToken;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 

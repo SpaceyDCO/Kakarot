@@ -1,10 +1,10 @@
 package github.kakarot.Trivias;
 
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import github.kakarot.Main;
 import lombok.Getter;
-import net.minecraft.util.com.google.common.reflect.TypeToken;
 import org.bukkit.Bukkit;
 
 import java.io.File;
