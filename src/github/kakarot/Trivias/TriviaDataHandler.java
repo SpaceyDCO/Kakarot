@@ -1,17 +1,19 @@
 package github.kakarot.Trivias;
 
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import github.kakarot.Main;
 import lombok.Getter;
-import net.minecraft.util.com.google.common.reflect.TypeToken;
 import org.bukkit.Bukkit;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;

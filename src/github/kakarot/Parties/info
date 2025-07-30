@@ -1,0 +1,50 @@
+# 🔧 KakarotTools
+
+Sistema de **Partys** para el servidor Dragon Block.
+
+## 📦 Descripción
+
+Este plugin permite a los jugadores formar partys (grupos) para combatir, entrenar o completar misiones juntos en el servidor Dragon Block. Se guarda automáticamente la información de cada party cada 5 minutos.
+
+## 🛠️ Características
+
+- Crear y disolver partys.
+- Invitar y expulsar jugadores.
+- Líder de party y miembros.
+- Guardado automático de datos cada 5 minutos.
+- Comando `/party` con alias `/p`.
+
+## 📜 Comandos
+
+| Comando     | Descripción                         |
+|-------------|-------------------------------------|
+| `/party`    | Comando principal del sistema de party. |
+| `/p`        | Alias de `/party`.                  |
+
+> Los subcomandos se implementarán pronto (ej: `/party invite`, `/party leave`, etc.)
+
+## 🔐 Permisos
+
+| Permiso      | Descripción                       | Default |
+|--------------|-----------------------------------|---------|
+| `party.use`  | Permite usar el sistema de party. | true    |
+
+## 🧠 Requisitos
+
+- **Minecraft:** 1.7.10
+- **Servidor:** Paper / Spigot
+- **Java:** 7 o superior
+
+## 🔄 Tareas automáticas
+
+El sistema guarda los datos automáticamente cada 5 minutos para evitar pérdidas por reinicios o apagones.
+
+## 👨‍💻 Autor
+- **Jean Franco Boom Bolaño**
+- **Alejandro Marquez**
+- GitHub: https://github.com/TheFive40
+- GitHub: https://github.com/SpaceyDCO
+- Servidor: Dragon Block Zenkai
+---
+
+> 📝 Este plugin está en desarrollo. Se agregarán más funciones próximamente.

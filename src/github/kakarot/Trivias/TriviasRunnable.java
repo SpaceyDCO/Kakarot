@@ -55,10 +55,10 @@ public class TriviasRunnable {
                 rewards = cTrivia.getRewardsCommands();
                 for(Player player : Bukkit.getServer().getOnlinePlayers()) {
                     player.sendMessage(" ");
-                    player.sendMessage(CC.translate("&1&l&m---------- &r&9[&bTRIVIA&9] &1&l&m----------"));
-                    player.sendMessage(CC.translate("&9Categoría: &b" + cTrivia.getCategory()));
-                    player.sendMessage(CC.translate("\n&b" + cTrivia.getQuestion()));
-                    player.sendMessage(CC.translate("&1&l&m---------- &r&9[&bTRIVIA&9] &1&l&m----------"));
+                    player.sendMessage(CC.translate("&6&l&m-------------------- &r&8[&a&lTRIVIA&8] &6&l&m--------------------"));
+                    player.sendMessage(CC.translate("\n&3Categoría: &b" + cTrivia.getCategory()));
+                    player.sendMessage(CC.translate("\n&f" + cTrivia.getQuestion()));
+                    player.sendMessage(CC.translate("&6&l&m-------------------- &r&8[&a&lTRIVIA&8] &6&l&m--------------------"));
                 }
                 //arreglar scheduler se queda ON
                 Bukkit.getScheduler().runTaskLater(Main.instance, () -> {
