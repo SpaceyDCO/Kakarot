@@ -54,7 +54,7 @@ public class Main extends JavaPlugin {
         Bukkit.getConsoleSender().sendMessage("Activated plugin Kakarot");
         Bukkit.getConsoleSender().sendMessage("By: SpaceyDCO");
         //Trivia
-        readTriviaConfig();
+        //readTriviaConfig();
         //TriviasRunnable.runnableTrivias.runTaskTimer(this, TriviasRunnable.TriviaCooldown, TriviasRunnable.TriviaCooldown); Disabled trivia runnable
         activeTrivia = false;
     }
