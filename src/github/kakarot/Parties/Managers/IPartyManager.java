@@ -3,8 +3,6 @@ package github.kakarot.Parties.Managers;
 import github.kakarot.Parties.Party;
 import org.bukkit.entity.Player;
 
-import java.util.Optional;
-
 public interface IPartyManager {
     /**
      * Creates a new Party with the provided player as a leader
@@ -26,9 +24,14 @@ public interface IPartyManager {
     void invitePlayer(Player leader, Player target);
     /**
      * Accepts an incoming invite to a party
-     * @param player The player accepting the invite
+     * @param player The player accepting the invitation
      */
     void acceptInvite(Player player);
+    /**
+     * Denies an invitation request to join a party
+     * @param player The player denying the invitation
+     */
+    void denyInvite(Player player);
     /**
      * Removes the player from their current party,
      * if they are the leader, the party is disbanded
@@ -37,9 +40,10 @@ public interface IPartyManager {
     void leaveParty(Player player);
     /**
      * Kicks a given player from their current party
-     * @param player Player to be kicked
+     * @param leader The leader of the party (Usually the player running the command)
+     * @param target The player to be kicked
      */
-    void kickPlayer(Player player);
+    void kickPlayer(Player leader, Player target);
     /**
      * Obtains the party this player is in, if any
      * @param player The player to be scanned
