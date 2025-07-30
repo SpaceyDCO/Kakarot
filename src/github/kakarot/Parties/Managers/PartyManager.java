@@ -107,6 +107,7 @@ public class PartyManager implements IPartyManager {
             Party party = getParty(leader);
             if(party != null) {
                 party.addMember(targetID);
+                playerPartyMap.put(targetID, party);
                 party.broadcast(CC.translate(PARTY_PREFIX + " &b" + player.getName() + " &9Has joined the party."));
             }else {
                 player.sendMessage(CC.translate(PARTY_PREFIX + " &9The party you tried to join no longer exists."));
