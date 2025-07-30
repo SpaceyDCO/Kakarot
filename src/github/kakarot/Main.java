@@ -4,6 +4,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import github.kakarot.Parties.Events.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
 import github.kakarot.Tools.ClassesRegistration;
@@ -13,6 +14,7 @@ import github.kakarot.Trivias.TriviasData;
 import github.kakarot.Trivias.TriviasRunnable;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -33,8 +35,11 @@ public class Main extends JavaPlugin {
     public static boolean activeTrivia;
     public static Main instance;
 
-    @Getter
-    private IPartyManager partyManager; //Parties
+    //Parties
+    private IPartyManager partyManager;
+    private PlayerChat playerChatEvent;
+    //Parties
+
     private final CommandFramework commandFramework = new CommandFramework(this);
     private final ClassesRegistration classesRegistration = new ClassesRegistration();
 
@@ -43,9 +48,9 @@ public class Main extends JavaPlugin {
         instance = this;
         //Parties
         this.partyManager = new PartyManager(this);
+        loadPartyEvents();
         //Parties
         classesRegistration.loadCommands("github.kakarot.Commands");
-        classesRegistration.loadListeners("github.kakarot.Events");
         Bukkit.getConsoleSender().sendMessage("Activated plugin Kakarot");
         Bukkit.getConsoleSender().sendMessage("By: SpaceyDCO");
         //Trivia
@@ -56,7 +61,14 @@ public class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         Bukkit.getConsoleSender().sendMessage("Deactivating plugin Kakarot");
+
+        //Trivia
         TriviasRunnable.runnableTrivias.cancel();
+        //Trivia
+
+        //Parties
+        unloadPartyEvents();
+        //Parties
     }
 
     //TRIVIA
@@ -90,4 +102,13 @@ public class Main extends JavaPlugin {
     }
     //TRIVIA
 
+    //PARTIES
+    private void loadPartyEvents() {
+        this.playerChatEvent = new PlayerChat(this);
+        getServer().getPluginManager().registerEvents(this.playerChatEvent, this);
+    }
+    private void unloadPartyEvents() {
+        AsyncPlayerChatEvent.getHandlerList().unregister(this.playerChatEvent);
+    }
+    //PARTIES
 }
