@@ -1,5 +1,7 @@
 package github.kakarot.Tools.Commands;
 
+import github.kakarot.Main;
+import github.kakarot.Tools.CC;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandExecutor;
@@ -12,8 +14,6 @@ import org.bukkit.help.HelpTopic;
 import org.bukkit.help.HelpTopicComparator;
 import org.bukkit.help.IndexHelpTopic;
 import org.bukkit.plugin.SimplePluginManager;
-import github.kakarot.Main;
-import github.kakarot.Tools.CC;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
