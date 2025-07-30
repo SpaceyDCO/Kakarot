@@ -41,6 +41,9 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        //Parties
+        this.partyManager = new PartyManager(this);
+        //Parties
         classesRegistration.loadCommands("github.kakarot.Commands");
         classesRegistration.loadListeners("github.kakarot.Events");
         Bukkit.getConsoleSender().sendMessage("Activated plugin Kakarot");
@@ -49,8 +52,6 @@ public class Main extends JavaPlugin {
         readTriviaConfig();
         TriviasRunnable.runnableTrivias.runTaskTimer(this, TriviasRunnable.TriviaCooldown, TriviasRunnable.TriviaCooldown);
         activeTrivia = false;
-        //Parties
-        this.partyManager = new PartyManager(this);
     }
     @Override
     public void onDisable() {

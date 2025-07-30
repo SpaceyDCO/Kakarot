@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class PartyCommands extends BaseCommand {
@@ -43,7 +44,13 @@ public class PartyCommands extends BaseCommand {
                 partyManager.leaveParty(player);
                 break;
             case "list":
-                handleListCommand(player, partyManager.getParty(player));
+                Optional<Party> optional = partyManager.getParty(player);
+                if(!optional.isPresent()) {
+                    player.sendMessage(CC.translate(PARTY_PREFIX + " &9You're not in any party"));
+                    return;
+                }
+                Party party = optional.get();
+                handleListCommand(player, party);
                 break;
             case "disband":
                 handleDisbandCommand(player, partyManager);
@@ -65,22 +72,18 @@ public class PartyCommands extends BaseCommand {
     }
     private void handleInviteCommand(Player player, String[] args, IPartyManager manager) {
         if(args.length != 2) {
-            player.sendMessage(CC.translate(PARTY_PREFIX + " &cUsage: /party invite <player>"));
+            player.sendMessage(CC.translate(PARTY_PREFIX + " &9Usage: /party invite <player>"));
             return;
         }
         Player target = Bukkit.getPlayer(args[1]);
         if(target == null) {
-            player.sendMessage(CC.translate(PARTY_PREFIX + " &cThat player doesn't exist."));
+            player.sendMessage(CC.translate(PARTY_PREFIX + " &9That player doesn't exist."));
             return;
         }
         if(!manager.isInParty(player)) manager.createParty(player);
         manager.invitePlayer(player, target);
     }
     private void handleListCommand(Player player, Party party) {
-        if(party == null) {
-            player.sendMessage(CC.translate(PARTY_PREFIX + " &9You're not in any party."));
-            return;
-        }
         List<UUID> members = party.getMembers();
         for(UUID member : members) {
             Player p = Bukkit.getPlayer(member);
@@ -90,11 +93,11 @@ public class PartyCommands extends BaseCommand {
         }
     }
     private void handleDisbandCommand(Player player, IPartyManager manager) {
-        Party party = manager.getParty(player);
-        if(party == null) {
+        if(!manager.getParty(player).isPresent()) {
             player.sendMessage(CC.translate(PARTY_PREFIX + " &9You're not in any party."));
             return;
         }
+        Party party = manager.getParty(player).get();
         if(!party.isLeader(player.getUniqueId())) {
             player.sendMessage(CC.translate(PARTY_PREFIX + " &9Only the leader can disband the party."));
             return;

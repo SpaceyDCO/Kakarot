@@ -3,6 +3,8 @@ package github.kakarot.Parties.Managers;
 import github.kakarot.Parties.Party;
 import org.bukkit.entity.Player;
 
+import java.util.Optional;
+
 public interface IPartyManager {
     /**
      * Creates a new Party with the provided player as a leader
@@ -45,9 +47,9 @@ public interface IPartyManager {
     /**
      * Obtains the party this player is in, if any
      * @param player The player to be scanned
-     * @return The party the player is in, null if not in any party
+     * @return An optional containing the player's party, an empty optional otherwise
      */
-    Party getParty(Player player);
+    Optional<Party> getParty(Player player);
     /**
      * Checks whether this player is in a valid party
      * @param player The player to be checked

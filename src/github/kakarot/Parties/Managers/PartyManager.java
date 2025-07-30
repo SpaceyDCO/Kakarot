@@ -16,7 +16,7 @@ public class PartyManager implements IPartyManager {
     private final Map<UUID, Party> playerPartyMap = new HashMap<>();
     private final Map<UUID, BukkitTask> invitedPlayers = new HashMap<>();
     private final Map<UUID, UUID> invitedPlayersMap = new HashMap<>(); //Key: Player invited | Value: Player that sent the invitation
-    public static final String PARTY_PREFIX = CC.translate("&7[&9Party&7] &e");
+    public static final String PARTY_PREFIX = CC.translate("&7[&9Party&7]&e");
     private final Main plugin;
     public PartyManager(Main plugin) {
         this.plugin = plugin;
@@ -47,11 +47,12 @@ public class PartyManager implements IPartyManager {
 
     @Override
     public void invitePlayer(Player leader, Player target) {
-        Party party = getParty(leader);
-        if(party == null) {
+        Optional<Party> optional = getParty(leader);
+        if(!optional.isPresent()) {
             leader.sendMessage(CC.translate(PARTY_PREFIX + " &9You are not in a party"));
             return;
         }
+        Party party = optional.get();
         if(!party.isLeader(leader.getUniqueId())) {
             leader.sendMessage(CC.translate(PARTY_PREFIX + " &9Only the party leader can send invites"));
             return;
@@ -88,7 +89,7 @@ public class PartyManager implements IPartyManager {
         message.addExtra(denyComponent);
         target.spigot().sendMessage(message);
         int INVITATION_TIMEOUT = 60; //In seconds
-        long inviteTimeout = INVITATION_TIMEOUT * 20;
+        long inviteTimeout = INVITATION_TIMEOUT * 20L;
         BukkitTask task = plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             clearInvites(target);
             leader.sendMessage(CC.translate(PARTY_PREFIX + " &9Invitation request to player &b" + target.getName() + " &9has expired."));
@@ -108,8 +109,9 @@ public class PartyManager implements IPartyManager {
         invitedPlayers.remove(targetID);
         Player leader = Bukkit.getPlayer(invitedPlayersMap.get(targetID));
         if(leader != null) {
-            Party party = getParty(leader);
-            if(party != null) {
+            Optional<Party> optional = getParty(leader);
+            if(optional.isPresent()) {
+                Party party = optional.get();
                 party.addMember(targetID);
                 playerPartyMap.put(targetID, party);
                 party.broadcast(CC.translate(PARTY_PREFIX + " &b" + player.getName() + " &9Has joined the party."));
@@ -141,11 +143,12 @@ public class PartyManager implements IPartyManager {
 
     @Override
     public void leaveParty(Player player) {
-        Party party = getParty(player);
-        if(party == null) {
+        Optional<Party> optional = getParty(player);
+        if(!optional.isPresent()) {
             player.sendMessage(CC.translate(PARTY_PREFIX + " &9You are not in a party"));
             return;
         }
+        Party party = optional.get();
         if(party.isLeader(player.getUniqueId())) {
             disbandParty(party);
             return;
@@ -158,8 +161,9 @@ public class PartyManager implements IPartyManager {
 
     @Override
     public void kickPlayer(Player leader, Player target) {
-        Party party = getParty(leader);
-        if(party == null) return;
+        Optional<Party> optional = getParty(leader);
+        if(!optional.isPresent()) return;
+        Party party = optional.get();
         if(!party.isLeader(leader.getUniqueId())) {
             leader.sendMessage(CC.translate(PARTY_PREFIX + " &9You are not the leader of this party."));
             return;
@@ -173,13 +177,13 @@ public class PartyManager implements IPartyManager {
     }
 
     @Override
-    public Party getParty(Player player) {
-        return playerPartyMap.getOrDefault(player.getUniqueId(), null);
+    public Optional<Party> getParty(Player player) {
+        return Optional.ofNullable(playerPartyMap.get(player.getUniqueId()));
     }
 
     @Override
     public boolean isInParty(Player player) {
-        return getParty(player) != null;
+        return getParty(player).isPresent();
     }
 
     @Override
