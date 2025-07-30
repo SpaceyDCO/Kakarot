@@ -1,8 +1,8 @@
 package github.kakarot.Tools;
 
 import com.google.common.collect.ImmutableSet;
-import org.bukkit.event.Listener;
 import github.kakarot.Main;
+import org.bukkit.event.Listener;
 
 import java.io.IOException;
 import java.net.URL;

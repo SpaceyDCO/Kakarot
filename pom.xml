@@ -28,11 +28,17 @@
 
     <dependencies>
         <dependency>
-            <groupId>Bukkit</groupId>
-            <artifactId>craftbukkit</artifactId>
-            <version>1.7.10-R0.1-SNAPSHOT</version>
+            <groupId>Thermos</groupId>
+            <artifactId>thermos</artifactId>
+            <version>1.7.10</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/libs/craftbukkit-1.7.10-R0.1-SNAPSHOT.jar</systemPath>
+            <systemPath>${project.basedir}/libs/Thermos.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.38</version>
         </dependency>
 
         <dependency>
