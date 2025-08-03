@@ -1,6 +1,7 @@
 package github.kakarot.Parties.Managers;
 
 import github.kakarot.Main;
+import github.kakarot.Parties.Events.PlayerChat;
 import github.kakarot.Parties.Party;
 import github.kakarot.Tools.CC;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -155,6 +156,7 @@ public class PartyManager implements IPartyManager {
         }
         party.removeMember(player.getUniqueId());
         playerPartyMap.remove(player.getUniqueId());
+        PlayerChat.partyChatPlayers.remove(player.getUniqueId());
         party.broadcast(CC.translate(PARTY_PREFIX + " &b" + player.getName() + " &9Left the party."));
         player.sendMessage(CC.translate(PARTY_PREFIX + " &9You have left the party."));
     }
