@@ -3,6 +3,7 @@ package github.kakarot.Raids.Scenario;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
@@ -21,5 +22,5 @@ public class Wave {
     /**
      * A list containing all Spawning information (npc id, coordinates)
      */
-    private List<SpawnInfo> spawns;
+    private final List<SpawnInfo> spawns = new ArrayList<>();
 }
