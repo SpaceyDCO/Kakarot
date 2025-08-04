@@ -36,6 +36,14 @@
         </dependency>
 
         <dependency>
+            <groupId>Minecraft</groupId>
+            <artifactId>mc</artifactId>
+            <version>1.7.10</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/minecraft.jar</systemPath>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>33.4.8-jre</version>
