@@ -11,6 +11,10 @@ public class SpawnInfo {
      */
     private String npcID;
     /**
+     * The tab in which the npc clone is
+     */
+    private int npcTab;
+    /**
      * How many of these npcs will spawn
      */
     private int count;
