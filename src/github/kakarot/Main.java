@@ -7,6 +7,7 @@ import com.google.gson.JsonSyntaxException;
 import github.kakarot.Parties.Events.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
+import github.kakarot.Raids.Managers.ConfigManager;
 import github.kakarot.Tools.ClassesRegistration;
 import github.kakarot.Tools.Commands.CommandFramework;
 import github.kakarot.Trivias.TriviaDataHandler;
@@ -40,6 +41,10 @@ public class Main extends JavaPlugin {
     private PlayerChat playerChatEvent;
     //Parties
 
+    //Arenas
+    @Getter private ConfigManager configManager;
+    //Arenas
+
     private final CommandFramework commandFramework = new CommandFramework(this);
     private final ClassesRegistration classesRegistration = new ClassesRegistration();
 
@@ -57,6 +62,11 @@ public class Main extends JavaPlugin {
         //readTriviaConfig();
         //TriviasRunnable.runnableTrivias.runTaskTimer(this, TriviasRunnable.TriviaCooldown, TriviasRunnable.TriviaCooldown); Disabled trivia runnable
         activeTrivia = false;
+
+        //Arenas
+        this.configManager = new ConfigManager(this);
+        this.configManager.loadAllConfig();
+        //Arenas
     }
     @Override
     public void onDisable() {
