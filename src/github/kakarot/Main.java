@@ -4,9 +4,11 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import cpw.mods.fml.common.FMLCommonHandler;
 import github.kakarot.Parties.Events.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
+import github.kakarot.Raids.Listeners.GameListener;
 import github.kakarot.Raids.Managers.ConfigManager;
 import github.kakarot.Raids.Managers.RaidManager;
 import github.kakarot.Tools.ClassesRegistration;
@@ -15,8 +17,12 @@ import github.kakarot.Trivias.TriviaDataHandler;
 import github.kakarot.Trivias.TriviasData;
 import github.kakarot.Trivias.TriviasRunnable;
 import lombok.Getter;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.NpcEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -45,6 +51,7 @@ public class Main extends JavaPlugin {
     //Arenas
     @Getter private ConfigManager configManager;
     @Getter private RaidManager raidManager;
+    private GameListener gameListener;
     //Arenas
 
     private final CommandFramework commandFramework = new CommandFramework(this);
@@ -69,6 +76,8 @@ public class Main extends JavaPlugin {
         this.configManager = new ConfigManager(this);
         this.configManager.loadAllConfig();
         this.raidManager = new RaidManager(this, this.configManager, this.partyManager);
+        this.gameListener = new GameListener(this, this.raidManager);
+        getServer().getPluginManager().registerEvents(this.gameListener, this);
         //Arenas
     }
     @Override
@@ -76,12 +85,17 @@ public class Main extends JavaPlugin {
         Bukkit.getConsoleSender().sendMessage("Deactivating plugin Kakarot");
 
         //Trivia
-        TriviasRunnable.runnableTrivias.cancel();
+        //TriviasRunnable.runnableTrivias.cancel();
         //Trivia
 
         //Parties
         unloadPartyEvents();
         //Parties
+
+        //Arenas
+        PlayerDeathEvent.getHandlerList().unregister(this.gameListener);
+        PlayerQuitEvent.getHandlerList().unregister(this.gameListener);
+        //Arenas
     }
 
     //TRIVIA
@@ -124,4 +138,10 @@ public class Main extends JavaPlugin {
         AsyncPlayerChatEvent.getHandlerList().unregister(this.playerChatEvent);
     }
     //PARTIES
+
+    //RAIDS CNPC EVENTS
+    public void onNpcDiedEvent(NpcEvent.DiedEvent event) {
+        this.gameListener.onNpcDied(event);
+    }
+    //RAIDS CNPC EVENTS
 }

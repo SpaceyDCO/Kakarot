@@ -9,10 +9,7 @@ import github.kakarot.Raids.Scenario.Scenario;
 import github.kakarot.Tools.CC;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static github.kakarot.Parties.Managers.PartyManager.PARTY_PREFIX;
 
@@ -93,5 +90,8 @@ public class RaidManager {
      */
     public Optional<GameSession> getSessionByPlayer(UUID player) {
         return Optional.ofNullable(activeSessionsByPlayer.get(player));
+    }
+    public Collection<GameSession> getAllActiveSessions() {
+        return this.activeSessionsByArena.values();
     }
 }
