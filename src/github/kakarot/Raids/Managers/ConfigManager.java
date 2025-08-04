@@ -6,7 +6,6 @@ import github.kakarot.Main;
 import github.kakarot.Raids.Arena;
 import github.kakarot.Raids.Scenario.Scenario;
 import github.kakarot.Raids.Scenario.Wave;
-import lombok.Getter;
 
 import java.io.File;
 import java.io.FileReader;

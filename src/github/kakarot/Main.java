@@ -8,6 +8,7 @@ import github.kakarot.Parties.Events.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
 import github.kakarot.Raids.Managers.ConfigManager;
+import github.kakarot.Raids.Managers.RaidManager;
 import github.kakarot.Tools.ClassesRegistration;
 import github.kakarot.Tools.Commands.CommandFramework;
 import github.kakarot.Trivias.TriviaDataHandler;
@@ -43,6 +44,7 @@ public class Main extends JavaPlugin {
 
     //Arenas
     @Getter private ConfigManager configManager;
+    @Getter private RaidManager raidManager;
     //Arenas
 
     private final CommandFramework commandFramework = new CommandFramework(this);
@@ -66,6 +68,7 @@ public class Main extends JavaPlugin {
         //Arenas
         this.configManager = new ConfigManager(this);
         this.configManager.loadAllConfig();
+        this.raidManager = new RaidManager(this, this.configManager, this.partyManager);
         //Arenas
     }
     @Override
