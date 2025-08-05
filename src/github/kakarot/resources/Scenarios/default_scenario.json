@@ -1,13 +1,14 @@
 {
   "scenarioName": "Default Scenario (Example)",
-  "waveCooldownSeconds": 20,
+  "waveCooldownInSeconds": 15,
   "waves": [
     {
       "waveNumber": 1,
       "startMessage": "&aWave 1 has begun!",
       "spawns": [
         {
-          "npcName": "Weak_Grunt",
+          "npcID": "Weak_Grunt",
+          "npcTab": 1,
           "count": 3,
           "spawnPointName": "gate_1"
         }
@@ -18,12 +19,14 @@
       "startMessage": "&eWave 2 is here! A stronger foe has appeared!",
       "spawns": [
         {
-          "npcName": "Weak_Grunt",
+          "npcID": "Weak_Grunt",
+          "npcTab": 1,
           "count": 5,
           "spawnPointName": "gate_1"
         },
         {
-          "npcName": "Tough_Grunt",
+          "npcID": "Tough_Grunt",
+          "npcTab": 1,
           "count": 1,
           "spawnPointName": "gate_2"
         }
@@ -34,7 +37,8 @@
       "startMessage": "&c&lBOSS WAVE! Defeat the Miniboss!",
       "spawns": [
         {
-          "npcName": "Orc_Miniboss",
+          "npcID": "Orc_Miniboss",
+          "npcTab": 1,
           "count": 1,
           "spawnPointName": "gate_1"
         }
