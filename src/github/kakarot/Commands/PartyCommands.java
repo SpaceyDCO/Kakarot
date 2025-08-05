@@ -15,7 +15,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,6 +57,9 @@ public class PartyCommands extends BaseCommand {
                 break;
             case "chat":
                 handleChatCommand(player, args, partyManager);
+                break;
+            case "test":
+                Main.instance.getRaidManager().startGame(player, "default_arena");
                 break;
             default:
                 sendHelpMessage(player);

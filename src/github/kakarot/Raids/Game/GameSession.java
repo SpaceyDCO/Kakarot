@@ -18,16 +18,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
-
-
 import java.util.*;
 import java.util.logging.Level;
+import static github.kakarot.Raids.Managers.RaidManager.RAID_PREFIX;
 
 public class GameSession {
     @Getter private GameState currentState;
     @Getter private int currentWaveNumber;
     @Getter private final Set<UUID> alivePlayers;
-    @Getter private final Set<UUID> aliveNpcs = new HashSet<>();
+    @Getter private final Set<Integer> aliveNpcs = new HashSet<>();
     @Getter private final Map<UUID, Location> originalLocation = new HashMap<>();
     private final Main plugin;
     private final RaidManager raidManager;
@@ -36,7 +35,6 @@ public class GameSession {
     private final Scenario scenario;
     private IWorld world;
     private BukkitTask activeTask = null;
-    private static final String RAID_PREFIX = "&7[&9Raids&7]";
 
     public GameSession(Main plugin, RaidManager raidManager, Party party, Arena arena, Scenario scenario) {
         this.plugin = plugin;
@@ -122,8 +120,8 @@ public class GameSession {
                     IEntity<?> npc = this.world.spawnClone((int) spawnLoc.getX(), (int) spawnLoc.getY(), (int) spawnLoc.getZ(), spawnInfo.getNpcTab(), spawnInfo.getNpcID(), true);
                     if(npc != null) {
                         if(npc instanceof ICustomNpc) {
-                            ICustomNpc<?> cNpc = (ICustomNpc<?>) npc;
-                            aliveNpcs.add(UUID.fromString(cNpc.getUniqueID()));
+                            ICustomNpc<?> cNpc = (ICustomNpc<?>) npc; //IDEAS: SET NPC'S JOB TO CHUNK LOADER TO PREVENT CHUNK UNLOADING
+                            aliveNpcs.add(cNpc.getEntityId());
                         }else plugin.getLogger().warning("Could not spawn NPC " + spawnInfo.getNpcID() + ". Perhaps it's not a CustomNpc?. Skipping this entry...");
                     }else plugin.getLogger().warning("Could not spawn NPC " + spawnInfo.getNpcID() + " for wave " + this.currentWaveNumber + ". It might not exist in the NPC cloner tab. Skipping this entry...");
                 }catch(Exception e) {
@@ -152,7 +150,7 @@ public class GameSession {
         Wave next = nextWave.get();
         int cooldown = scenario.getWaveCooldownInSeconds();
         party.broadcast(CC.translate(RAID_PREFIX + " &9Wave " + this.currentWaveNumber + " cleared!. Starting next wave..."));
-        party.broadcast(CC.translate(RAID_PREFIX + " &9Next wave begins in " + cooldown + " seconds."));
+        party.broadcast(CC.translate(RAID_PREFIX + " &9Next wave begins in " + cooldown + " seconds..."));
         this.activeTask = plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             startWave(next);
         }, 20L * cooldown);
@@ -176,14 +174,15 @@ public class GameSession {
             this.activeTask.cancel();
             this.activeTask = null;
         }
-        for(UUID npcId : aliveNpcs) {
-            net.minecraft.entity.Entity mcEntity = this.world.getMCWorld().func_152378_a(npcId);
+        for(Integer npcID : aliveNpcs) {
+            net.minecraft.entity.Entity mcEntity = this.world.getMCWorld().getEntityByID(npcID);
             if(mcEntity != null) {
                 IEntity<?> npc = NpcAPI.Instance().getIEntity(mcEntity);
                 if(npc != null) npc.despawn();
             }
         }
         aliveNpcs.clear();
+        plugin.getLogger().info("Attempting to teleport players to their original location...");
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             for(UUID playerID : party.getMembers()) {
                 Player player = Bukkit.getPlayer(playerID);
@@ -191,8 +190,10 @@ public class GameSession {
                     Location ogLoc = originalLocation.get(playerID);
                     if(ogLoc != null) {
                         player.teleport(ogLoc);
+                        plugin.getLogger().info("Successfully teleported " + player.getName());
                     }else {
                         player.performCommand("/warp spawn"); //Send player to spawn in case ogLoc wasn't found
+                        plugin.getLogger().info("Sent player " + player.getName() + " back to spawn. (Original location was not found)");
                     }
                     originalLocation.remove(playerID);
                 }
@@ -201,11 +202,11 @@ public class GameSession {
         }, 20L * 10);
     }
     //EVENTS
-    public void onNpcDied(UUID npcid) {
+    public void onNpcDied(int npcid) {
         if(this.currentState != GameState.WAVE_IN_PROGRESS) return;
         aliveNpcs.remove(npcid);
         if(aliveNpcs.isEmpty()) startWaveCooldown(isFinalWave());
-        else party.broadcast(CC.translate(RAID_PREFIX + " &9Enemies remaining: &b" + alivePlayers.size()));
+        else party.broadcast(CC.translate(RAID_PREFIX + " &9Enemies remaining: &b" + aliveNpcs.size()));
     }
     public void onPlayerDied(Player player) {
         party.broadcast(CC.translate(RAID_PREFIX + " &b" + player.getName() + " &9has been defeated."));

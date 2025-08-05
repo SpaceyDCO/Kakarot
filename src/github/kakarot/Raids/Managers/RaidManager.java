@@ -8,10 +8,7 @@ import github.kakarot.Raids.Game.GameSession;
 import github.kakarot.Raids.Scenario.Scenario;
 import github.kakarot.Tools.CC;
 import org.bukkit.entity.Player;
-
 import java.util.*;
-
-import static github.kakarot.Parties.Managers.PartyManager.PARTY_PREFIX;
 
 public class RaidManager {
     private final Map<String, GameSession> activeSessionsByArena = new HashMap<>();
@@ -19,6 +16,7 @@ public class RaidManager {
     private final Main plugin;
     private final ConfigManager configManager;
     private final IPartyManager partyManager;
+    public static final String RAID_PREFIX = "&7[&cRaids&7]";
     public RaidManager(Main plugin, ConfigManager configManager, IPartyManager partyManager) {
         this.plugin = plugin;
         this.configManager = configManager;
@@ -32,29 +30,30 @@ public class RaidManager {
      * @param arenaName The arena to start (must be lowercase)
      */
     public void startGame(Player leader, String arenaName) {
+        plugin.getServer().getConsoleSender().sendMessage("Player: " + leader.getName());
         if(!partyManager.isInParty(leader)) {
-            leader.sendMessage(CC.translate(PARTY_PREFIX + " &9You must be in a party to start a game."));
+            leader.sendMessage(CC.translate(RAID_PREFIX + " &9You must be in a party to start a game."));
             return;
         }
         Optional<Party> partyOptional = partyManager.getParty(leader);
-        if(!partyOptional.isPresent() || partyOptional.get().isLeader(leader.getUniqueId())) {
-            leader.sendMessage(CC.translate(PARTY_PREFIX + " &9You must be the party leader to start a game."));
+        if(!partyOptional.isPresent() || !partyOptional.get().isLeader(leader.getUniqueId())) {
+            leader.sendMessage(CC.translate(RAID_PREFIX + " &9You must be the party leader to start a game."));
             return;
         }
         Party party = partyOptional.get();
         Optional<Arena> arenaOptional = configManager.getArena(arenaName);
         if(!arenaOptional.isPresent()) {
-            leader.sendMessage(CC.translate(PARTY_PREFIX + " &9Arena &b" + arenaName + " &9not found."));
+            leader.sendMessage(CC.translate(RAID_PREFIX + " &9Arena &b" + arenaName + " &9not found."));
             return;
         }
         Arena arena = arenaOptional.get();
-        if(activeSessionsByArena.containsKey(arenaName)) {
-            leader.sendMessage(CC.translate(PARTY_PREFIX + " &9Can't start game.\nThis arena is currently in use."));
+        if(activeSessionsByArena.containsKey(arena.getArenaName())) {
+            leader.sendMessage(CC.translate(RAID_PREFIX + " &9Can't start game.\nThis arena is currently in use."));
             return;
         }
         Optional<Scenario> scenarioOptional = configManager.getScenario(arena.getScenarioName());
         if(!scenarioOptional.isPresent()) {
-            leader.sendMessage(CC.translate(PARTY_PREFIX + " &9Scenario &b" + arena.getScenarioName() + " &9for arena &b" + arenaName + " &9not found.\n&9Please contact an admin."));
+            leader.sendMessage(CC.translate(RAID_PREFIX + " &9Scenario &b" + arena.getScenarioName() + " &9for arena &b" + arena.getArenaName() + " &9not found.\n&9Please contact an admin."));
             plugin.getLogger().severe("-----------------------");
             plugin.getLogger().severe("FATAL ERROR: Scenario " + arena.getScenarioName() + " from arena " + arenaName + " is missing or corrupt!");
             plugin.getLogger().severe("-----------------------");
@@ -63,7 +62,7 @@ public class RaidManager {
         Scenario scenario = scenarioOptional.get();
         plugin.getLogger().info("Starting a new game in arena " + arenaName + " with scenario " + scenario.getScenarioName() + ".\nParty led by: " + leader.getName());
         GameSession gameSession = new GameSession(plugin, this, party, arena, scenario);
-        activeSessionsByArena.put(arenaName.toLowerCase(), gameSession);
+        activeSessionsByArena.put(arena.getArenaName(), gameSession);
         for(UUID member : party.getMembers()) {
             activeSessionsByPlayer.put(member, gameSession);
         }
@@ -76,8 +75,8 @@ public class RaidManager {
      * @param gameSession The session to be cleared
      */
     public void endGame(GameSession gameSession) {
-        plugin.getLogger().info("Ending game in arena " + gameSession.getArena().getArenaName() + ".");
-        activeSessionsByArena.remove(gameSession.getArena().getArenaName().toLowerCase());
+        plugin.getLogger().info("Ending game in arena " + gameSession.getArena().getArenaName() + "...");
+        activeSessionsByArena.remove(gameSession.getArena().getArenaName());
         for(UUID member : gameSession.getParty().getMembers()) {
             activeSessionsByPlayer.remove(member);
         }

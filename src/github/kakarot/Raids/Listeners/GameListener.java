@@ -1,11 +1,8 @@
 package github.kakarot.Raids.Listeners;
 
-import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import github.kakarot.Main;
 import github.kakarot.Raids.Game.GameSession;
 import github.kakarot.Raids.Managers.RaidManager;
-import noppes.npcs.api.event.INpcEvent;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.NpcEvent;
 import org.bukkit.entity.Player;
@@ -15,7 +12,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.Optional;
-import java.util.UUID;
 
 public class GameListener implements Listener {
     private final Main plugin;
@@ -32,7 +28,7 @@ public class GameListener implements Listener {
     }
 
     public void onNpcDied(NpcEvent.DiedEvent event) {
-        UUID npcId = UUID.fromString(event.getNpc().getUniqueID());
+        int npcId = event.getNpc().getEntityId(); //Change to getMCEntity().getEntityID later
         //SELF NOTE: I COULD BE ABLE TO OPTIMIZE THIS FOR BY ADDING A TEMPDATA LINKING EACH SPAWNED NPC TO THE ARENA'S NAME THEY WERE SUPPOSED TO BE SPAWNED IN
         for(GameSession session : raidManager.getAllActiveSessions()) { //Might lag if there are hundreds of sessions
             if(session.getAliveNpcs().contains(npcId)) {
