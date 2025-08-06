@@ -12,6 +12,26 @@ public class CountdownHelper {
         this.plugin = plugin;
     }
 
+    public BukkitTask startCountdown(int durationInSeconds, Runnable onTick) {
+        return startCountdown(durationInSeconds+1, onTick, () -> {});
+    }
+
+    public BukkitTask startCountdown(int durationInSeconds, Runnable onTick, Runnable onFinish) {
+        return new BukkitRunnable() {
+            final int[] timeRemaining = {durationInSeconds};
+            @Override
+            public void run() {
+                if(timeRemaining[0] <= 0) {
+                    onFinish.run();
+                    cancel();
+                    return;
+                }
+                onTick.run();
+                timeRemaining[0]--;
+            }
+        }.runTaskTimer(this.plugin, 0L, 20L);
+    }
+
     public BukkitTask startCountdown(int durationInSeconds, Consumer<Integer> onTick, Runnable onFinish) {
         return new BukkitRunnable() {
             final int[] timeRemaining = {durationInSeconds};
