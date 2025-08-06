@@ -13,7 +13,7 @@ public class CountdownHelper {
     }
 
     public BukkitTask startCountdown(int durationInSeconds, Runnable onTick) {
-        return startCountdown(durationInSeconds+1, onTick, () -> {});
+        return startCountdown(durationInSeconds, onTick, () -> {});
     }
 
     public BukkitTask startCountdown(int durationInSeconds, Runnable onTick, Runnable onFinish) {

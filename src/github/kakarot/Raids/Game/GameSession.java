@@ -3,6 +3,7 @@ package github.kakarot.Raids.Game;
 import github.kakarot.Main;
 import github.kakarot.Parties.Party;
 import github.kakarot.Raids.Arena;
+import github.kakarot.Raids.Helpers.CountdownHelper;
 import github.kakarot.Raids.Helpers.SerializableLocation;
 import github.kakarot.Raids.Managers.RaidManager;
 import github.kakarot.Raids.Scenario.Scenario;
@@ -16,6 +17,7 @@ import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.scripted.NpcAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import java.util.*;
@@ -86,16 +88,20 @@ public class GameSession {
             }
             this.world = api.getPlayer(refPlayer.getName()).getWorld();
             final int FIRST_WAVE_COOLDOWN_SECONDS = 10;
-            party.broadcast(CC.translate(RAID_PREFIX + " &9First wave will start in &b" + FIRST_WAVE_COOLDOWN_SECONDS + " &9seconds..."));
-            this.activeTask = plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            party.broadcast(CC.translate(RAID_PREFIX + " &9First wave will start in &b" + FIRST_WAVE_COOLDOWN_SECONDS + " &9seconds."));
+            this.activeTask = new CountdownHelper(plugin).startCountdown(FIRST_WAVE_COOLDOWN_SECONDS, (remaining) -> {
+                party.broadcast(CC.translate(RAID_PREFIX + " &9Starting in " + remaining + " second" + (remaining > 1 ? "s" : "") + "..."));
+                party.playSound(Sound.NOTE_BASS, 1, 1);
+            }, () -> {
                 Optional<Wave> firstWave = this.scenario.getNextWave(0);
                 if(firstWave.isPresent()) {
                     startWave(firstWave.get());
+                    party.playSound(Sound.ORB_PICKUP, 1, 1);
                 }else {
                     party.broadcast(CC.translate(RAID_PREFIX + " &cERROR: &9This scenario does not have Wave 1 defined. Aborting game...\n&9Report this to an admin."));
                     endGame(false);
                 }
-            }, 20L * FIRST_WAVE_COOLDOWN_SECONDS);
+            });
         }, 5L);
     }
 
@@ -151,9 +157,13 @@ public class GameSession {
         int cooldown = scenario.getWaveCooldownInSeconds();
         party.broadcast(CC.translate(RAID_PREFIX + " &9Wave " + this.currentWaveNumber + " cleared!. Starting next wave..."));
         party.broadcast(CC.translate(RAID_PREFIX + " &9Next wave begins in " + cooldown + " seconds..."));
-        this.activeTask = plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+        this.activeTask = new CountdownHelper(plugin).startCountdown(cooldown, (remaining) -> {
+            party.broadcast(CC.translate(RAID_PREFIX + " &9Beginning in " + remaining + " second" + (remaining > 1 ? "s" : "") + "..."));
+            party.playSound(Sound.NOTE_BASS, 1, 1);
+        }, () -> {
             startWave(next);
-        }, 20L * cooldown);
+            party.playSound(Sound.ORB_PICKUP, 1, 1);
+        });
     }
     private boolean isFinalWave() {
         return this.currentWaveNumber >= this.scenario.getTotalWaves();
@@ -165,6 +175,7 @@ public class GameSession {
             party.broadcast(CC.translate("&6========== VICTORY! =========="));
             party.broadcast(CC.translate("&eYou have defeated all the enemies!"));
             party.broadcast(CC.translate("&6=================================="));
+            new CountdownHelper(plugin).startCountdown(10, party::spawnRandomFirework);
         }else {
             party.broadcast(CC.translate("&4========== DEFEAT =========="));
             party.broadcast(CC.translate("&7Your party has been overwhelmed. Get stronger and try again."));
