@@ -19,6 +19,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import java.util.*;
 import java.util.logging.Level;
@@ -30,13 +31,16 @@ public class GameSession {
     @Getter private final Set<UUID> alivePlayers;
     @Getter private final Set<Integer> aliveNpcs = new HashSet<>();
     @Getter private final Map<UUID, Location> originalLocation = new HashMap<>();
+    private long lastNpcKillTime = 0;
     private final Main plugin;
     private final RaidManager raidManager;
     @Getter private final Party party;
     @Getter private final Arena arena;
     private final Scenario scenario;
-    private IWorld world;
+    @Getter private IWorld world;
     private BukkitTask activeTask = null;
+    private BukkitTask watchdogTask = null;
+    private final int inactivityCooldownInMinutes = 10;
 
     public GameSession(Main plugin, RaidManager raidManager, Party party, Arena arena, Scenario scenario) {
         this.plugin = plugin;
@@ -91,12 +95,35 @@ public class GameSession {
             party.broadcast(CC.translate(RAID_PREFIX + " &9First wave will start in &b" + FIRST_WAVE_COOLDOWN_SECONDS + " &9seconds."));
             this.activeTask = new CountdownHelper(plugin).startCountdown(FIRST_WAVE_COOLDOWN_SECONDS, (remaining) -> {
                 party.broadcast(CC.translate(RAID_PREFIX + " &9Starting in " + remaining + " second" + (remaining > 1 ? "s" : "") + "..."));
-                party.playSound(Sound.NOTE_BASS, 1, 1);
+                party.playSound(Sound.NOTE_BASS, 1f, 1f);
             }, () -> {
                 Optional<Wave> firstWave = this.scenario.getNextWave(0);
                 if(firstWave.isPresent()) {
                     startWave(firstWave.get());
                     party.playSound(Sound.ORB_PICKUP, 1, 1);
+                    this.watchdogTask = new BukkitRunnable() {
+                        final boolean[] warned = {false};
+                        @Override
+                        public void run() {
+                            if(currentState == GameState.ENDING) {
+                                this.cancel();
+                                return;
+                            }
+                            if(currentState == GameState.WAVE_IN_PROGRESS) {
+                                long timeInMillis = inactivityCooldownInMinutes * 60 * 1000;
+                                long timeSinceLastKill = System.currentTimeMillis() - lastNpcKillTime;
+                                if(timeSinceLastKill > (timeSinceLastKill/2) && !warned[0]) {
+                                    party.broadcast(CC.translate(RAID_PREFIX + " &9WARNING: game will end in " + (inactivityCooldownInMinutes/2) + " minutes due to inactivity. Defeat an enemy to cancel."));
+                                    warned[0] = true;
+                                }
+                                if(timeSinceLastKill > timeInMillis) {
+                                    party.broadcast(CC.translate(RAID_PREFIX + " &9Game has ended due to inactivity."));
+                                    endGame(false);
+                                    this.cancel();
+                                }
+                            }
+                        }
+                    }.runTaskTimer(plugin, 20L * 30, 20L * 30);
                 }else {
                     party.broadcast(CC.translate(RAID_PREFIX + " &cERROR: &9This scenario does not have Wave 1 defined. Aborting game...\n&9Report this to an admin."));
                     endGame(false);
@@ -159,10 +186,10 @@ public class GameSession {
         party.broadcast(CC.translate(RAID_PREFIX + " &9Next wave begins in " + cooldown + " seconds..."));
         this.activeTask = new CountdownHelper(plugin).startCountdown(cooldown, (remaining) -> {
             party.broadcast(CC.translate(RAID_PREFIX + " &9Beginning in " + remaining + " second" + (remaining > 1 ? "s" : "") + "..."));
-            party.playSound(Sound.NOTE_BASS, 1, 1);
+            party.playSound(Sound.NOTE_BASS, 1f, 1f);
         }, () -> {
             startWave(next);
-            party.playSound(Sound.ORB_PICKUP, 1, 1);
+            party.playSound(Sound.ORB_PICKUP, 1f, 1f);
         });
     }
     private boolean isFinalWave() {
@@ -180,16 +207,21 @@ public class GameSession {
             party.broadcast(CC.translate("&4========== DEFEAT =========="));
             party.broadcast(CC.translate("&7Your party has been overwhelmed. Get stronger and try again."));
             party.broadcast(CC.translate("&4=================================="));
+            party.playSound(Sound.WITHER_DEATH, 1f, 1f);
         }
         if(this.activeTask != null) {
             this.activeTask.cancel();
             this.activeTask = null;
         }
+        if(this.watchdogTask != null) {
+            this.watchdogTask.cancel();
+            this.watchdogTask = null;
+        }
         for(Integer npcID : aliveNpcs) {
-            net.minecraft.entity.Entity mcEntity = this.world.getMCWorld().getEntityByID(npcID);
-            if(mcEntity != null) {
-                IEntity<?> npc = NpcAPI.Instance().getIEntity(mcEntity);
-                if(npc != null) npc.despawn();
+            IEntity<?> entity = this.world.getEntityByID(npcID);
+            if(entity != null) {
+                entity.despawn(); //SELF NOTE : SET A UNIQUE NAME SO IT'S 100% SURE IT ONLY DESPAWNS NPCS FROM THE RAIDS
+                //if(npc != null) npc.despawn();
             }
         }
         aliveNpcs.clear();
@@ -216,11 +248,13 @@ public class GameSession {
     public void onNpcDied(int npcid) {
         if(this.currentState != GameState.WAVE_IN_PROGRESS) return;
         aliveNpcs.remove(npcid);
+        this.lastNpcKillTime = System.currentTimeMillis();
         if(aliveNpcs.isEmpty()) startWaveCooldown(isFinalWave());
         else party.broadcast(CC.translate(RAID_PREFIX + " &9Enemies remaining: &b" + aliveNpcs.size()));
     }
     public void onPlayerDied(Player player) {
         party.broadcast(CC.translate(RAID_PREFIX + " &b" + player.getName() + " &9has been defeated."));
+        party.playSound(Sound.AMBIENCE_THUNDER, 1f, 1f);
         alivePlayers.remove(player.getUniqueId());
         Location spectatorSpawn = arena.getSpectatorSpawn().toBukkitLocation(arena.getWorldName());
         if(spectatorSpawn != null) player.teleport(spectatorSpawn);

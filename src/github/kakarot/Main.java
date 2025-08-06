@@ -8,6 +8,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import github.kakarot.Parties.Events.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
+import github.kakarot.Raids.Game.GameSession;
 import github.kakarot.Raids.Listeners.GameListener;
 import github.kakarot.Raids.Managers.ConfigManager;
 import github.kakarot.Raids.Managers.RaidManager;
@@ -17,6 +18,7 @@ import github.kakarot.Trivias.TriviaDataHandler;
 import github.kakarot.Trivias.TriviasData;
 import github.kakarot.Trivias.TriviasRunnable;
 import lombok.Getter;
+import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.NpcEvent;
 import org.bukkit.Bukkit;
@@ -95,6 +97,7 @@ public class Main extends JavaPlugin {
         //Arenas
         PlayerDeathEvent.getHandlerList().unregister(this.gameListener);
         PlayerQuitEvent.getHandlerList().unregister(this.gameListener);
+        this.raidManager.cleanupArenas();
         //Arenas
     }
 

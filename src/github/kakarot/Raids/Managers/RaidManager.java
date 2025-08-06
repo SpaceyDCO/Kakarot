@@ -7,6 +7,7 @@ import github.kakarot.Raids.Arena;
 import github.kakarot.Raids.Game.GameSession;
 import github.kakarot.Raids.Scenario.Scenario;
 import github.kakarot.Tools.CC;
+import noppes.npcs.api.entity.IEntity;
 import org.bukkit.entity.Player;
 import java.util.*;
 
@@ -80,6 +81,21 @@ public class RaidManager {
         for(UUID member : gameSession.getParty().getMembers()) {
             activeSessionsByPlayer.remove(member);
         }
+    }
+    public void cleanupArenas() {
+        plugin.getLogger().info("Cleaning up npcs from raids...");
+        int count = 0;
+        for(GameSession session : getAllActiveSessions()) {
+            if(session.getAliveNpcs().isEmpty()) continue;
+            for(int npcID : session.getAliveNpcs()) {
+                IEntity<?> entity = session.getWorld().getEntityByID(npcID);
+                if(entity != null) {
+                    entity.despawn();
+                    count++;
+                }
+            }
+        }
+        plugin.getLogger().info("Cleaned up " + count + " npc(s) from arenas.");
     }
 
     /**

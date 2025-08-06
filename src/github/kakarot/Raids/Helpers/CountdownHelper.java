@@ -23,7 +23,7 @@ public class CountdownHelper {
             public void run() {
                 if(timeRemaining[0] <= 0) {
                     onFinish.run();
-                    cancel();
+                    this.cancel();
                     return;
                 }
                 onTick.run();
@@ -39,7 +39,7 @@ public class CountdownHelper {
             public void run() {
                 if(timeRemaining[0] <= 0) {
                     onFinish.run();
-                    cancel();
+                    this.cancel();
                     return;
                 }
                 onTick.accept(timeRemaining[0]);
