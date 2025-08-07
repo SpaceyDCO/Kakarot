@@ -76,6 +76,43 @@ public class ConfigManager {
 
         plugin.getLogger().info("Successfully loaded arena and scenarios config");
     }
+    public boolean reloadArena(String arenaName) {
+        File arenaFile = new File(plugin.getDataFolder(), "arenas/" + arenaName + ".json");
+        if(!arenaFile.exists()) {
+            return false;
+        }
+        try(Reader reader = new FileReader(arenaFile)) {
+            Arena loadedArena = gson.fromJson(reader, Arena.class);
+            if(loadedArena != null) {
+                loadedArenas.put(arenaName.toLowerCase(), loadedArena);
+                plugin.getLogger().info("Successfully loaded arena " + arenaName);
+                return true;
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to load arena " + arenaFile + ". Reason: " + e.getMessage());
+            return false;
+        }
+        return false;
+    }
+    public boolean reloadScenario(String scenarioName) {
+        File scenarioFile = new File(plugin.getDataFolder(), "scenarios/" + scenarioName + ".json");
+        if(!scenarioFile.exists()) {
+            return false;
+        }
+        try(Reader reader = new FileReader(scenarioFile)) {
+            Scenario loadedScenario = gson.fromJson(reader, Scenario.class);
+            if(loadedScenario != null) {
+                loadedScenarios.put(scenarioName.toLowerCase(), loadedScenario);
+                plugin.getLogger().info("Successfully loaded scenario " + scenarioName);
+                loadedScenario.getWaves().sort(Comparator.comparingInt(Wave::getWaveNumber));
+                return true;
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to load scenario " + scenarioName + ". Reason: " + e.getMessage());
+            return false;
+        }
+        return false;
+    }
 
     private void loadArenas() {
         loadedArenas.clear(); //Just in case

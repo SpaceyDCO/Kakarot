@@ -10,6 +10,7 @@ import github.kakarot.Tools.MessageManager;
 import noppes.npcs.api.entity.IEntity;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -160,5 +161,28 @@ public class RaidManager {
      */
     public Collection<GameSession> getAllActiveSessions() {
         return this.activeSessionsByArena.values();
+    }
+    public void attemptReloadArena(CommandSender sender, String arenaName) {
+        String lowerCaseArenaName = arenaName.toLowerCase();
+        if(activeSessionsByArena.containsKey(lowerCaseArenaName)) {
+            sender.sendMessage("Can't reload this arena because a session is currently active.");
+            return;
+        }
+        boolean success = configManager.reloadArena(arenaName);
+        if(success) sender.sendMessage("Arena " + arenaName + " loaded successfully.");
+        else sender.sendMessage("There was an error loading arena " + arenaName);
+    }
+    public void attemptReloadScenario(CommandSender sender, String scenarioName) {
+        String lowerCaseScenarioName = scenarioName.toLowerCase();
+        boolean isScenarioInUse = activeSessionsByArena.values().stream()
+                .anyMatch(session -> session.getArena().getScenarioName().equalsIgnoreCase(lowerCaseScenarioName));
+        if(isScenarioInUse) {
+            sender.sendMessage("Cannot reload scenario " + scenarioName + ". Its currently in use.");
+            plugin.getLogger().warning("Tried to reload scenario " + scenarioName + " but failed because it's currently in use.");
+            return;
+        }
+        boolean success = configManager.reloadScenario(lowerCaseScenarioName);
+        if(success) sender.sendMessage("Scenario " + scenarioName + " loaded successfully.");
+        else sender.sendMessage("There was an error loading scenario " + scenarioName);
     }
 }
