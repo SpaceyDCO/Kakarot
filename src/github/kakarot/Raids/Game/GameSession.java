@@ -20,6 +20,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.NpcEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -273,13 +274,17 @@ public class GameSession {
         alivePlayers.remove(player.getUniqueId());
         checkLossCondition();
     }
-    public void onPlayerQuit(Player player) {
+    public void onPlayerQuit(OfflinePlayer player) {
         party.broadcast(messageManager.getMessage("player.disconnected", "player_name", player.getName()));
         Location ogLoc = originalLocation.get(player.getUniqueId());
-        if(ogLoc != null) player.teleport(ogLoc);
+        if(ogLoc != null) {
+            if(player.getPlayer() != null) player.getPlayer().teleport(ogLoc);
+        }
         else {
-            player.performCommand("/warp spawn"); //Send player to spawn in case ogLoc wasn't found
-            plugin.getLogger().info("Sent player " + player.getName() + " back to spawn. (Original location was not found)");
+            if(player.getPlayer() != null) {
+                player.getPlayer().performCommand("/warp spawn"); //Send player to spawn in case ogLoc wasn't found
+                plugin.getLogger().info("Sent player " + player.getName() + " back to spawn. (Original location was not found)");
+            }
         }
         alivePlayers.remove(player.getUniqueId());
         originalLocation.remove(player.getUniqueId());
