@@ -13,9 +13,9 @@ public class Arena {
     private String arenaName;
     private String worldName;
     private String scenarioName;
+    private int maxPlayers;
     private SerializableLocation playerSpawnLocation;
     private final Map<String, SerializableLocation> npcSpawnPoints = new HashMap<>();
-    private SerializableLocation spectatorSpawn;
     private SerializableLocation boundaryCorner1;
     private SerializableLocation boundaryCorner2;
 

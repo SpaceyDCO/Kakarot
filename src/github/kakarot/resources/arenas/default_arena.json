@@ -2,6 +2,7 @@
   "arenaName": "Default Tower (Example)",
   "scenarioName": "default_scenario",
   "worldName": "world",
+  "maxPlayers": 4,
   "playerSpawnLocation": {
     "x": 100.5,
     "y": 64.0,
@@ -24,13 +25,6 @@
       "yaw": 0.0,
       "pitch": 0.0
     }
-  },
-  "spectatorSpawn": {
-    "x": 100.5,
-    "y": 80.0,
-    "z": 200.5,
-    "yaw": 180.0,
-    "pitch": 0.0
   },
   "boundaryCorner1": {
     "x": 80.0,

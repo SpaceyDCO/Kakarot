@@ -79,13 +79,13 @@ public class ConfigManager {
 
     private void loadArenas() {
         loadedArenas.clear(); //Just in case
-        File arenasDirectory = new File(plugin.getDataFolder(), "Arenas");
-        loadFromDirectory(arenasDirectory, "Arenas/default_arena.json", Arena.class, loadedArenas);
+        File arenasDirectory = new File(plugin.getDataFolder(), "arenas");
+        loadFromDirectory(arenasDirectory, "arenas/default_arena.json", Arena.class, loadedArenas);
     }
     private void loadScenarios() {
         loadedScenarios.clear(); //Just in case
-        File scenariosDirectory = new File(plugin.getDataFolder(), "Scenarios");
-        loadFromDirectory(scenariosDirectory, "Scenarios/default_scenario.json", Scenario.class, loadedScenarios);
+        File scenariosDirectory = new File(plugin.getDataFolder(), "scenarios");
+        loadFromDirectory(scenariosDirectory, "scenarios/default_scenario.json", Scenario.class, loadedScenarios);
     }
 
     private <T> void loadFromDirectory(File directory, String defaultResourcePath, Class<T> classOfT, Map<String, T> destinationMap) {

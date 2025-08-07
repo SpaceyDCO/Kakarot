@@ -42,6 +42,7 @@ player:
 
 # --- System & Error Messages ---
 system:
+  max-players-exceeded: "&9This arena only allows a maximum of {count} players."
   already-in-game: "&9Can't start game. Player {player_name} is locked to another arena."
   not-in-party: "&9You must be in a party to start a game."
   not-party-leader: "&9You must be the party leader to start a game."

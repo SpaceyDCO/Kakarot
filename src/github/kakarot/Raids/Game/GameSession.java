@@ -271,8 +271,6 @@ public class GameSession {
         party.broadcast(messageManager.getMessage("player.defeated", "player_name", player.getName()));
         party.playSound(Sound.AMBIENCE_THUNDER, 1f, 1f);
         alivePlayers.remove(player.getUniqueId());
-        Location spectatorSpawn = arena.getSpectatorSpawn().toBukkitLocation(arena.getWorldName());
-        if(spectatorSpawn != null) player.teleport(spectatorSpawn);
         checkLossCondition();
     }
     public void onPlayerQuit(Player player) {

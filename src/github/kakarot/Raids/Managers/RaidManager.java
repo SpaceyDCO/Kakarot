@@ -90,6 +90,10 @@ public class RaidManager {
             return;
         }
         Scenario scenario = scenarioOptional.get();
+        if(party.getSize() > arena.getMaxPlayers()) {
+            leader.sendMessage(messageManager.getMessage("system.max-players-exceeded", "count", String.valueOf(arena.getMaxPlayers())));
+            return;
+        }
         plugin.getLogger().info("Starting a new game in arena " + arenaName + " with scenario " + scenario.getScenarioName() + ".\nParty led by: " + leader.getName());
         GameSession gameSession = new GameSession(plugin, arenaName, this, party, arena, scenario, messageManager);
         activeSessionsByArena.put(arenaName, gameSession);

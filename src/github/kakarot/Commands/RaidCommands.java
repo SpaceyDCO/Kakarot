@@ -21,15 +21,18 @@ public class RaidCommands extends BaseCommand {
         Player player = (Player) sender;
         switch(args[0].toLowerCase()) {
             case "reload":
-                if(player.isOp()) {
-                    player.sendMessage(CC.translate("&aReloading raid messages..."));
-                    messageManager.reloadMessages(false, true);
-                    player.sendMessage(CC.translate("&aRaid messages reloaded successfully."));
-                }
+                handleReloadCommand(player);
                 break;
             case "default":
                 player.sendMessage(CC.translate("&5Commands:"));
                 player.sendMessage(CC.translate("&d/raid reload"));
+        }
+    }
+    private void handleReloadCommand(Player player) {
+        if(player.isOp()) {
+            player.sendMessage(CC.translate("&aReloading raid messages..."));
+            messageManager.reloadMessages(false, true);
+            player.sendMessage(CC.translate("&aRaid messages reloaded successfully."));
         }
     }
 }
