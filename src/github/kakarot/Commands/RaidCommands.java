@@ -21,6 +21,13 @@ public class RaidCommands extends BaseCommand {
         CommandSender sender = command.getSender();
         String[] args = command.getArgs();
         Player player = (Player) sender;
+        if(args.length == 0) {
+            player.sendMessage(CC.translate("&5======== Commands ========"));
+            player.sendMessage(CC.translate("&d/raid reload"));
+            player.sendMessage(CC.translate("&d/raid reloadArena <arena_name>"));
+            player.sendMessage(CC.translate("&d/raid reloadScenario <scenario_name>"));
+            return;
+        }
         switch(args[0].toLowerCase()) {
             case "reload":
                 handleReloadCommand(player);
@@ -31,7 +38,7 @@ public class RaidCommands extends BaseCommand {
             case "reloadscenario":
                 handleScenarioReloadCommand(sender, args);
                 break;
-            case "default":
+            default:
                 player.sendMessage(CC.translate("&5======== Commands ========"));
                 player.sendMessage(CC.translate("&d/raid reload"));
                 player.sendMessage(CC.translate("&d/raid reloadArena <arena_name>"));
