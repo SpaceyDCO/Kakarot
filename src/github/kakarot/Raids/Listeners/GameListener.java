@@ -20,7 +20,7 @@ import java.util.Optional;
 public class GameListener implements Listener {
     private final Main plugin;
     private final RaidManager raidManager;
-    private final List<String> allowedCommands = Arrays.asList("/msg", "/r", "/party", "/recargar");
+    private final List<String> allowedCommands = Arrays.asList("/msg", "/r", "/party", "/recargar", "/login");
     public GameListener(Main plugin, RaidManager raidManager) {
         this.plugin = plugin;
         this.raidManager = raidManager;
