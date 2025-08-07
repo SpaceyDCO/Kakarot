@@ -26,6 +26,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -100,6 +101,7 @@ public class Main extends JavaPlugin {
         //Arenas
         PlayerDeathEvent.getHandlerList().unregister(this.gameListener);
         PlayerQuitEvent.getHandlerList().unregister(this.gameListener);
+        PlayerCommandPreprocessEvent.getHandlerList().unregister(this.gameListener);
         this.raidManager.cleanupArenas();
         //Arenas
     }
@@ -205,6 +207,9 @@ public class Main extends JavaPlugin {
     //RAIDS CNPC EVENTS
     public void onNpcDiedEvent(NpcEvent.DiedEvent event) {
         this.gameListener.onNpcDied(event);
+    }
+    public void onNpcDamagedEvent(NpcEvent.DamagedEvent event) {
+        this.gameListener.onNpcDamaged(event);
     }
     //RAIDS CNPC EVENTS
 }

@@ -14,7 +14,9 @@ import lombok.Getter;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.NpcEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -41,7 +43,7 @@ public class GameSession {
     @Getter private IWorld world;
     private BukkitTask activeTask = null;
     private BukkitTask watchdogTask = null;
-    private final int inactivityCooldownInMinutes = 2;
+    private final int inactivityCooldownInMinutes = 15;
 
     public GameSession(Main plugin, String arenaFileName, RaidManager raidManager, Party party, Arena arena, Scenario scenario) {
         this.plugin = plugin;
@@ -245,6 +247,15 @@ public class GameSession {
         }, 20L * 10);
     }
     //EVENTS
+    public void onNpcDamaged(NpcEvent.DamagedEvent event) {
+        if(!(event.getDamageSource().getTrueSource() instanceof IPlayer)) return;
+        Player player = Bukkit.getPlayer(UUID.fromString(event.getDamageSource().getTrueSource().getUniqueID()));
+        if(player == null) return;
+        if(!alivePlayers.contains(player.getUniqueId())) {
+            event.setCanceled(true);
+            player.sendMessage(CC.translate(RAID_PREFIX + " &9You are not registered in this instance."));
+        }
+    }
     public void onNpcDied(int npcid) {
         if(this.currentState != GameState.WAVE_IN_PROGRESS) return;
         aliveNpcs.remove(npcid);

@@ -30,7 +30,7 @@ public class RaidManager {
      * @param leader The leader of the party
      * @param arenaName The arena to start (must be lowercase)
      */
-    public void startGame(Player leader, String arenaName) {
+    public void startGame(Player leader, String arenaName) { //ADD A CHECK TO SEE IF THIS PARTY IS ALREADY IN A GAME + ADD onJoinPartyEvent and onLeavePartyEvent
         plugin.getServer().getConsoleSender().sendMessage("Player: " + leader.getName());
         if(!partyManager.isInParty(leader)) {
             leader.sendMessage(CC.translate(RAID_PREFIX + " &9You must be in a party to start a game."));
@@ -48,7 +48,7 @@ public class RaidManager {
             return;
         }
         Arena arena = arenaOptional.get();
-        if(activeSessionsByArena.containsKey(arena.getArenaName())) {
+        if(activeSessionsByArena.containsKey(arenaName)) {
             leader.sendMessage(CC.translate(RAID_PREFIX + " &9Can't start game.\nThis arena is currently in use."));
             return;
         }
@@ -62,8 +62,8 @@ public class RaidManager {
         }
         Scenario scenario = scenarioOptional.get();
         plugin.getLogger().info("Starting a new game in arena " + arenaName + " with scenario " + scenario.getScenarioName() + ".\nParty led by: " + leader.getName());
-        GameSession gameSession = new GameSession(plugin, this, party, arena, scenario);
-        activeSessionsByArena.put(arena.getArenaName(), gameSession);
+        GameSession gameSession = new GameSession(plugin, arenaName, this, party, arena, scenario);
+        activeSessionsByArena.put(arenaName, gameSession);
         for(UUID member : party.getMembers()) {
             activeSessionsByPlayer.put(member, gameSession);
         }
@@ -76,8 +76,8 @@ public class RaidManager {
      * @param gameSession The session to be cleared
      */
     public void endGame(GameSession gameSession) {
-        plugin.getLogger().info("Ending game in arena " + gameSession.getArena().getArenaName() + "...");
-        activeSessionsByArena.remove(gameSession.getArena().getArenaName());
+        plugin.getLogger().info("Ending game in arena " + gameSession.getArenaFileName() + "...");
+        activeSessionsByArena.remove(gameSession.getArenaFileName());
         for(UUID member : gameSession.getParty().getMembers()) {
             activeSessionsByPlayer.remove(member);
         }
@@ -105,6 +105,9 @@ public class RaidManager {
      */
     public Optional<GameSession> getSessionByPlayer(UUID player) {
         return Optional.ofNullable(activeSessionsByPlayer.get(player));
+    }
+    public Optional<GameSession> getSessionByArena(String arenaName) {
+        return Optional.ofNullable(activeSessionsByArena.get(arenaName));
     }
     public Collection<GameSession> getAllActiveSessions() {
         return this.activeSessionsByArena.values();
