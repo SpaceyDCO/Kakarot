@@ -33,7 +33,7 @@ public class PartyCommands extends BaseCommand {
             sendHelpMessage(player);
             return;
         }
-        switch(args[0].toLowerCase()) { //TO DO: optimize switch
+        switch(args[0].toLowerCase()) {
             case "invite":
                 handleInviteCommand(player, args, partyManager);
                 break;
@@ -57,6 +57,9 @@ public class PartyCommands extends BaseCommand {
                 break;
             case "chat":
                 handleChatCommand(player, args, partyManager);
+                break;
+            case "reload":
+                handleReloadCommand(player);
                 break;
             default:
                 sendHelpMessage(player);
@@ -153,5 +156,14 @@ public class PartyCommands extends BaseCommand {
                 player.sendMessage(messageManager.getMessage("party-chat-enabled"));
             }
         }
+    }
+    private void handleReloadCommand(Player player) {
+        if(!player.isOp()) {
+            player.sendMessage(CC.translate("&cOnly operators can run this command."));
+            return;
+        }
+        player.sendMessage(CC.translate("&aReloading party config..."));
+        messageManager.reloadMessages(true, false);
+        player.sendMessage(CC.translate("&aConfiguration reloaded successfully."));
     }
 }
