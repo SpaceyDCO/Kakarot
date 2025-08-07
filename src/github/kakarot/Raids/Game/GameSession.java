@@ -96,7 +96,7 @@ public class GameSession {
             }
             this.world = api.getPlayer(refPlayer.getName()).getWorld();
             final int FIRST_WAVE_COOLDOWN_SECONDS = 10;
-            party.broadcast(CC.translate(RAID_PREFIX + " &9&lREMINDER: &r&9Not killing enemies for " + this.inactivityCooldownInMinutes + " minutes will result in the game being ended due to inactivity."));
+            party.broadcast(CC.translate(RAID_PREFIX + " &9&lREMINDER: &r&9Not killing enemies for &b" + this.inactivityCooldownInMinutes + " &9minutes will result in the game being ended due to inactivity."));
             party.broadcast(CC.translate(RAID_PREFIX + " &9First wave will start in &b" + FIRST_WAVE_COOLDOWN_SECONDS + " &9seconds."));
             this.activeTask = new CountdownHelper(plugin).startCountdown(FIRST_WAVE_COOLDOWN_SECONDS, (remaining) -> {
                 party.broadcast(CC.translate(RAID_PREFIX + " &9Starting in " + remaining + " second" + (remaining > 1 ? "s" : "") + "..."));
@@ -118,6 +118,9 @@ public class GameSession {
                                 long timeSinceLastKill = System.currentTimeMillis() - lastNpcKillTime;
                                 if(timeSinceLastKill > timeInMillis) {
                                     party.broadcast(CC.translate(RAID_PREFIX + " &9Game has ended due to inactivity."));
+                                    for(Player player : Bukkit.getOnlinePlayers()) {
+                                        if(player != null) player.sendMessage(CC.translate(RAID_PREFIX + " &9Arena &b" + arena.getArenaName() + " resetted due to inactivity."));
+                                    }
                                     endGame(false);
                                     this.cancel();
                                 }
@@ -233,10 +236,8 @@ public class GameSession {
                 Player player = Bukkit.getPlayer(playerID);
                 if(player != null && player.isOnline()) {
                     Location ogLoc = originalLocation.get(playerID);
-                    if(ogLoc != null) {
-                        player.teleport(ogLoc);
-                        plugin.getLogger().info("Successfully teleported " + player.getName());
-                    }else {
+                    if(ogLoc != null) player.teleport(ogLoc);
+                    else {
                         player.performCommand("/warp spawn"); //Send player to spawn in case ogLoc wasn't found
                         plugin.getLogger().info("Sent player " + player.getName() + " back to spawn. (Original location was not found)");
                     }
@@ -273,7 +274,26 @@ public class GameSession {
     }
     public void onPlayerQuit(Player player) {
         party.broadcast(CC.translate(RAID_PREFIX + " &b" + player.getName() + " &9has disconnected."));
+        Location ogLoc = originalLocation.get(player.getUniqueId());
+        if(ogLoc != null) player.teleport(ogLoc);
+        else {
+            player.performCommand("/warp spawn"); //Send player to spawn in case ogLoc wasn't found
+            plugin.getLogger().info("Sent player " + player.getName() + " back to spawn. (Original location was not found)");
+        }
         alivePlayers.remove(player.getUniqueId());
+        originalLocation.remove(player.getUniqueId());
+        checkLossCondition();
+    }
+    public void onPlayerLeftParty(Player player) {
+        party.broadcast(CC.translate(RAID_PREFIX + " &b" + player.getName() + " &9has left the party."));
+        Location ogLoc = originalLocation.get(player.getUniqueId());
+        if(ogLoc != null) player.teleport(ogLoc);
+        else {
+            player.performCommand("/warp spawn"); //Send player to spawn in case ogLoc wasn't found
+            plugin.getLogger().info("Sent player " + player.getName() + " back to spawn. (Original location was not found)");
+        }
+        alivePlayers.remove(player.getUniqueId());
+        originalLocation.remove(player.getUniqueId());
         checkLossCondition();
     }
     //EVENTS

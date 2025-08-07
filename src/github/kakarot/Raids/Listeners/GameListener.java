@@ -1,10 +1,10 @@
 package github.kakarot.Raids.Listeners;
 
 import github.kakarot.Main;
+import github.kakarot.Parties.Events.PlayerLeavePartyEvent;
 import github.kakarot.Raids.Game.GameSession;
 import github.kakarot.Raids.Managers.RaidManager;
 import github.kakarot.Tools.CC;
-import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.scripted.event.NpcEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,7 +20,7 @@ import java.util.Optional;
 public class GameListener implements Listener {
     private final Main plugin;
     private final RaidManager raidManager;
-    private final List<String> allowedCommands = Arrays.asList("/msg", "/r", "/party");
+    private final List<String> allowedCommands = Arrays.asList("/msg", "/r", "/party", "/recargar");
     public GameListener(Main plugin, RaidManager raidManager) {
         this.plugin = plugin;
         this.raidManager = raidManager;
@@ -76,5 +76,11 @@ public class GameListener implements Listener {
                 player.sendMessage(CC.translate(RaidManager.RAID_PREFIX + " &4You can't use commands while in-game."));
             }
         }
+    }
+    @EventHandler
+    public void onPartyLeave(PlayerLeavePartyEvent event) {
+        Player player = event.getPlayer();
+        Optional<GameSession> sessionOptional = raidManager.getSessionByPlayer(player.getUniqueId());
+        sessionOptional.ifPresent(session -> session.onPlayerLeftParty(player));
     }
 }

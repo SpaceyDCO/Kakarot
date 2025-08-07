@@ -82,6 +82,11 @@ public class RaidManager {
             activeSessionsByPlayer.remove(member);
         }
     }
+
+    /**
+     * Cleans up remaining NPCs in the Arenas
+     * Usually called when plugin gets disabled
+     */
     public void cleanupArenas() {
         plugin.getLogger().info("Cleaning up npcs from raids...");
         int count = 0;
@@ -106,9 +111,20 @@ public class RaidManager {
     public Optional<GameSession> getSessionByPlayer(UUID player) {
         return Optional.ofNullable(activeSessionsByPlayer.get(player));
     }
+
+    /**
+     * Gets a session linked to an arena
+     * @param arenaName Arena whose session is needed
+     * @return An optional containing the GameSession
+     */
     public Optional<GameSession> getSessionByArena(String arenaName) {
         return Optional.ofNullable(activeSessionsByArena.get(arenaName));
     }
+
+    /**
+     * Gets all active sessions
+     * @return A collection with all GameSession currently running
+     */
     public Collection<GameSession> getAllActiveSessions() {
         return this.activeSessionsByArena.values();
     }

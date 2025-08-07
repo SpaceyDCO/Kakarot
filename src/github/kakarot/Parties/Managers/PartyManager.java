@@ -1,8 +1,8 @@
 package github.kakarot.Parties.Managers;
 
 import github.kakarot.Main;
-import github.kakarot.Parties.Events.PartyJoinEvent;
-import github.kakarot.Parties.Events.PartyLeaveEvent;
+import github.kakarot.Parties.Events.PlayerJoinPartyEvent;
+import github.kakarot.Parties.Events.PlayerLeavePartyEvent;
 import github.kakarot.Parties.Listeners.PlayerChat;
 import github.kakarot.Parties.Party;
 import github.kakarot.Tools.CC;
@@ -118,7 +118,7 @@ public class PartyManager implements IPartyManager {
                 party.addMember(targetID);
                 playerPartyMap.put(targetID, party);
                 party.broadcast(CC.translate(PARTY_PREFIX + " &b" + player.getName() + " &9Has joined the party."));
-                Bukkit.getPluginManager().callEvent(new PartyJoinEvent(player, party));
+                Bukkit.getPluginManager().callEvent(new PlayerJoinPartyEvent(player, party));
             }else {
                 player.sendMessage(CC.translate(PARTY_PREFIX + " &9The party you tried to join no longer exists."));
             }
@@ -160,9 +160,9 @@ public class PartyManager implements IPartyManager {
         party.removeMember(player.getUniqueId());
         playerPartyMap.remove(player.getUniqueId());
         PlayerChat.partyChatPlayers.remove(player.getUniqueId());
-        party.broadcast(CC.translate(PARTY_PREFIX + " &b" + player.getName() + " &9Left the party."));
+        party.broadcast(CC.translate(PARTY_PREFIX + " &b" + player.getName() + " &9left the party."));
         player.sendMessage(CC.translate(PARTY_PREFIX + " &9You have left the party."));
-        Bukkit.getPluginManager().callEvent(new PartyLeaveEvent(player, party));
+        Bukkit.getPluginManager().callEvent(new PlayerLeavePartyEvent(player, party));
     }
 
     @Override

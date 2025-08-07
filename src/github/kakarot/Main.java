@@ -4,6 +4,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import github.kakarot.Parties.Events.PlayerLeavePartyEvent;
 import github.kakarot.Parties.Listeners.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
@@ -102,6 +103,7 @@ public class Main extends JavaPlugin {
         PlayerDeathEvent.getHandlerList().unregister(this.gameListener);
         PlayerQuitEvent.getHandlerList().unregister(this.gameListener);
         PlayerCommandPreprocessEvent.getHandlerList().unregister(this.gameListener);
+        PlayerLeavePartyEvent.getHandlerList().unregister(this.gameListener);
         this.raidManager.cleanupArenas();
         //Arenas
     }
