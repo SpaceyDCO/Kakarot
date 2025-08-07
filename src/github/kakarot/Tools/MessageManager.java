@@ -16,6 +16,9 @@ public class MessageManager {
     }
 
     public void reloadMessages() {
+        reloadMessages(true, true);
+    }
+    public void reloadMessages(boolean party, boolean raid) {
         File messagesDir = new File(plugin.getDataFolder(), "messages");
         if(!messagesDir.exists()) {
             if(messagesDir.mkdirs()) plugin.getLogger().info("Successfully created messages folder.");
@@ -24,8 +27,8 @@ public class MessageManager {
                 return;
             }
         }
-        partyMessages = loadConfig("messages/party_messages.yml");
-        raidMessages = loadConfig("messages/raid_messages.yml");
+        if(party) partyMessages = loadConfig("messages/party_messages.yml");
+        if(raid) raidMessages = loadConfig("messages/raid_messages.yml");
     }
 
     public String getMessage(String key, String... replacements) {
@@ -44,7 +47,7 @@ public class MessageManager {
                 message = raidMessages.getString("prefix") + message;
             }
         }else {
-            return CC.translate("&cMissing message key:" + key);
+            return CC.translate("&cMissing message key: " + key);
         }
         for(int i = 0; i < replacements.length; i += 2) {
             if((i+1) < replacements.length) {

@@ -99,7 +99,7 @@ public class GameSession {
             }
             this.world = api.getPlayer(refPlayer.getName()).getWorld();
             final int FIRST_WAVE_COOLDOWN_SECONDS = 10;
-            party.broadcast(messageManager.getMessage("inactivity-warning", "minutes", String.valueOf(this.inactivityCooldownInMinutes)));
+            party.broadcast(messageManager.getMessage("system.inactivity-warning", "minutes", String.valueOf(this.inactivityCooldownInMinutes)));
             party.broadcast(messageManager.getMessage("wave.first-wave-countdown", "count", String.valueOf(FIRST_WAVE_COOLDOWN_SECONDS)));
             this.activeTask = new CountdownHelper(plugin).startCountdown(FIRST_WAVE_COOLDOWN_SECONDS, (remaining) -> {
                 String plural = remaining > 1 ? "s" : "";
@@ -302,7 +302,7 @@ public class GameSession {
     //EVENTS
     private void checkLossCondition() {
         if(alivePlayers.isEmpty()) {
-            party.broadcast(messageManager.getMessage("all-defeated"));
+            party.broadcast(messageManager.getMessage("player.all-defeated"));
             endGame(false);
         }
     }

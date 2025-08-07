@@ -19,6 +19,7 @@ party-created: "You have created a new party! Use &b/party invite <player>&e to 
 party-disbanded: "&cThe party has been disbanded."
 party-left: "You have left the party."
 player-joined: "&b{player}&e has joined the party."
+player-left: "&b{player} &9has left the party."
 player-kicked: "&c{target}&e has been kicked from the party."
 invite-sent: "You have invited &b{target}&e to the party."
 invite-denied: "You have denied the party invitation."

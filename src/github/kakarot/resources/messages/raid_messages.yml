@@ -42,6 +42,7 @@ player:
 
 # --- System & Error Messages ---
 system:
+  already-in-game: "&9Can't start game. Player {player_name} is locked to another arena."
   not-in-party: "&9You must be in a party to start a game."
   not-party-leader: "&9You must be the party leader to start a game."
   arena-in-use: " &9Can't start game. This arena is currently in use."
@@ -51,12 +52,12 @@ system:
   outsider-damage-blocked: "&cYou cannot interfere with this battle."
 
   # Errors visible to players
-  errors:
-    arena-not-valid: "&9Arena {arena_name} not valid. Report this to an admin."
-    arena-not-found: "&9Arena {arena_name} not found."
-    world-not-found: "&cERROR: The world for this arena could not be found. Aborting game."
-    world-validation-failed: "&cERROR: Could not validate the arena's world. This may be caused by players leaving the world."
-    cnpc-api-not-found: "&cERROR: The CustomNPCs+ API was not found. Aborting game."
-    world-context-not-found: "&cFATAL ERROR: World context not found. Aborting game."
-    no-wave-one: "&cERROR: This scenario does not have Wave 1 defined. Aborting game."
-    no-enemies-spawned: "&eNo enemies spawned this wave. There may be a configuration error. Skipping..."
+errors:
+  arena-not-valid: "&9Arena {arena_name} not valid. Report this to an admin."
+  arena-not-found: "&9Arena {arena_name} not found."
+  world-not-found: "&cERROR: The world for this arena could not be found. Aborting game."
+  world-validation-failed: "&cERROR: Could not validate the arena's world. This may be caused by players leaving the world."
+  cnpc-api-not-found: "&cERROR: The CustomNPCs+ API was not found. Aborting game."
+  world-context-not-found: "&cFATAL ERROR: World context not found. Aborting game."
+  no-wave-one: "&cERROR: This scenario does not have Wave 1 defined. Aborting game."
+  no-enemies-spawned: "&eNo enemies spawned this wave. There may be a configuration error. Skipping..."

@@ -8,6 +8,8 @@ import github.kakarot.Raids.Game.GameSession;
 import github.kakarot.Raids.Scenario.Scenario;
 import github.kakarot.Tools.MessageManager;
 import noppes.npcs.api.entity.IEntity;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -28,12 +30,24 @@ public class RaidManager {
     }
 
     /**
+     * Overload method to use with CustomNPCs scripting tool
+     * @param leaderUUID The UUID of the party leader
+     * @param arenaName The arena file name to start (must be lowercase)
+     */
+    public void startGame(String leaderUUID, String arenaName) {
+        Player leader = Bukkit.getPlayer(UUID.fromString(leaderUUID));
+        if(leader != null) startGame(leader, arenaName);
+        else {
+            throw new RuntimeException("Can't start raid game. Player for leaderUUID does not exist.");
+        }
+    }
+    /**
      * Attempts to start a new raid
      * This is the main entry point called by commands
      * @param leader The leader of the party
      * @param arenaName The arena to start (must be lowercase)
      */
-    public void startGame(Player leader, String arenaName) { //ADD A CHECK TO SEE IF THIS PARTY IS ALREADY IN A GAME + ADD onJoinPartyEvent and onLeavePartyEvent
+    public void startGame(Player leader, String arenaName) {
         plugin.getServer().getConsoleSender().sendMessage("Player: " + leader.getName());
         if(!partyManager.isInParty(leader)) {
             leader.sendMessage(messageManager.getMessage("system.not-in-party"));
@@ -45,6 +59,18 @@ public class RaidManager {
             return;
         }
         Party party = partyOptional.get();
+        for(UUID member : party.getMembers()) {
+            if(this.activeSessionsByPlayer.containsKey(member)) { //Member of the party is already in a game
+                Player player = Bukkit.getPlayer(member);
+                if(player != null) {
+                    party.broadcast(messageManager.getMessage("system.already-in-game", "player_name", player.getName()));
+                }else {
+                    OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(member);
+                    if(offlinePlayer != null) party.broadcast(messageManager.getMessage("system.already-in-game", "player_name", offlinePlayer.getName()));
+                }
+                return;
+            }
+        }
         Optional<Arena> arenaOptional = configManager.getArena(arenaName);
         if(!arenaOptional.isPresent()) {
             leader.sendMessage(messageManager.getMessage("errors.arena-not-found", "arena_name", arenaName));
