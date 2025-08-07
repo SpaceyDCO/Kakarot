@@ -1,7 +1,7 @@
 package github.kakarot.Commands;
 
 import github.kakarot.Main;
-import github.kakarot.Parties.Events.PlayerChat;
+import github.kakarot.Parties.Listeners.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
 import github.kakarot.Parties.Party;

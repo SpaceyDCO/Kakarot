@@ -1,4 +1,4 @@
-package github.kakarot.Parties.Events;
+package github.kakarot.Parties.Listeners;
 
 import github.kakarot.Main;
 import github.kakarot.Parties.Party;

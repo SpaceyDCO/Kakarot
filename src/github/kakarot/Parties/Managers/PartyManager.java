@@ -1,7 +1,9 @@
 package github.kakarot.Parties.Managers;
 
 import github.kakarot.Main;
-import github.kakarot.Parties.Events.PlayerChat;
+import github.kakarot.Parties.Events.PartyJoinEvent;
+import github.kakarot.Parties.Events.PartyLeaveEvent;
+import github.kakarot.Parties.Listeners.PlayerChat;
 import github.kakarot.Parties.Party;
 import github.kakarot.Tools.CC;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -116,6 +118,7 @@ public class PartyManager implements IPartyManager {
                 party.addMember(targetID);
                 playerPartyMap.put(targetID, party);
                 party.broadcast(CC.translate(PARTY_PREFIX + " &b" + player.getName() + " &9Has joined the party."));
+                Bukkit.getPluginManager().callEvent(new PartyJoinEvent(player, party));
             }else {
                 player.sendMessage(CC.translate(PARTY_PREFIX + " &9The party you tried to join no longer exists."));
             }
@@ -159,6 +162,7 @@ public class PartyManager implements IPartyManager {
         PlayerChat.partyChatPlayers.remove(player.getUniqueId());
         party.broadcast(CC.translate(PARTY_PREFIX + " &b" + player.getName() + " &9Left the party."));
         player.sendMessage(CC.translate(PARTY_PREFIX + " &9You have left the party."));
+        Bukkit.getPluginManager().callEvent(new PartyLeaveEvent(player, party));
     }
 
     @Override
