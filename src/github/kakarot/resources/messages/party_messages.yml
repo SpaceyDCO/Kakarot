@@ -1,0 +1,64 @@
+# ----------------------------------------------------------------- #
+#                 Party System Messages                             #
+# ----------------------------------------------------------------- #
+#
+# This file controls all the chat messages for the party system.
+# You can use standard Minecraft color codes with '&'.
+#
+# Placeholders:
+# {player} - The name of the player performing an action.
+# {target} - The name of the player being targeted (e.g., invited, kicked).
+# {command} - Used to show the correct usage of a command.
+#
+
+# --- Core Settings ---
+prefix: "&8[&9Party&8] &e" # This prefix is added to almost all party-related messages.
+
+# --- General Success Messages ---
+party-created: "You have created a new party! Use &b/party invite <player>&e to add members."
+party-disbanded: "&cThe party has been disbanded."
+party-left: "You have left the party."
+player-joined: "&b{player}&e has joined the party."
+player-left: "&b{player} &9has left the party."
+player-kicked: "&c{target}&e has been kicked from the party."
+invite-sent: "You have invited &b{target}&e to the party."
+invite-denied: "You have denied the party invitation."
+leader-invite-denied: "&c{target} has denied your party invitation."
+party-chat-enabled: "&aParty chat has been enabled. Your messages are now private to the party."
+party-chat-disabled: "&cParty chat has been disabled. Your messages are now public."
+
+# --- Invitation Dialogue ---
+invite-received: "&b{player}&e has invited you to their party!"
+accept-button: " &a&l[ACCEPT]"  # A space at the start can help with formatting in chat.
+deny-button: " &c&l[DENY]"
+
+# --- Expiration Notifications ---
+target-invite-expired: "The party invitation from &b{player}&e has expired."
+leader-invite-expired: "Your party invitation to &b{target}&e has expired."
+
+# --- Error & Failure Messages ---
+already-in-party: "&cYou are already in a party."
+not-in-party: "&cYou are not in a party."
+leader-requirement: "&cYou must be the party leader to do that."
+self-invite: "&cYou cannot invite yourself."
+self-kick: "&cYou cannot kick yourself."
+player-not-online: "&cThat player is not currently online."
+player-invalid: "&cCould not find a player by that name."
+player-not-in-party: "&c{target} is not a member of your party."
+target-already-in-party: "&c{target} is already in a party."
+target-pending-invite: "&c{target} already has a pending invitation."
+invitation-canceled: "&c{player} tried to invite you, but you already have a pending invite."
+no-request-pending: "&cYou do not have any pending party invitations."
+party-invalid: "&cThe party you tried to join no longer exists."
+correct-command-usage: "&cUsage: {command}"
+
+# --- Help & Information Command (/party) ---
+# These describe each sub-command when a player just types /party.
+party-invite-info: "Invites a player to your party."
+party-accept-info: "Accepts a pending party invitation."
+party-deny-info: "Denies a pending party invitation."
+party-leave-info: "Leaves your current party."
+party-kick-info: "Kicks a member from your party."
+party-disband-info: "Disbands your entire party."
+party-list-info: "Lists all members of your party."
+party-chat-info: "Toggles party-only chat."

@@ -1,0 +1,39 @@
+{
+  "arenaName": "Default Tower (Example)",
+  "scenarioName": "default_scenario",
+  "worldName": "world",
+  "maxPlayers": 4,
+  "playerSpawnLocation": {
+    "x": 100.5,
+    "y": 64.0,
+    "z": 200.5,
+    "yaw": 180.0,
+    "pitch": 0.0
+  },
+  "npcSpawnPoints": {
+    "gate_1": {
+      "x": 100.5,
+      "y": 64.0,
+      "z": 180.5,
+      "yaw": 0.0,
+      "pitch": 0.0
+    },
+    "gate_2": {
+      "x": 120.5,
+      "y": 64.0,
+      "z": 180.5,
+      "yaw": 0.0,
+      "pitch": 0.0
+    }
+  },
+  "boundaryCorner1": {
+    "x": 80.0,
+    "y": 60.0,
+    "z": 170.0
+  },
+  "boundaryCorner2": {
+    "x": 130.0,
+    "y": 90.0,
+    "z": 210.0
+  }
+}

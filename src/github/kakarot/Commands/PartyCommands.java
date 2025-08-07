@@ -1,27 +1,26 @@
 package github.kakarot.Commands;
 
 import github.kakarot.Main;
-import github.kakarot.Parties.Events.PlayerChat;
+import github.kakarot.Parties.Listeners.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
-import github.kakarot.Parties.Managers.PartyManager;
 import github.kakarot.Parties.Party;
 import github.kakarot.Tools.CC;
 import github.kakarot.Tools.Commands.BaseCommand;
 import github.kakarot.Tools.Commands.Command;
 import github.kakarot.Tools.Commands.CommandArgs;
+import github.kakarot.Tools.MessageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public class PartyCommands extends BaseCommand {
-    private static final String PARTY_PREFIX = PartyManager.PARTY_PREFIX;
+    private final MessageManager messageManager = Main.instance.getMessageManager();
     @Override
     @Command(name = "party", aliases = "p")
     public void onCommand(CommandArgs command) throws IOException {
@@ -34,7 +33,7 @@ public class PartyCommands extends BaseCommand {
             sendHelpMessage(player);
             return;
         }
-        switch(args[0].toLowerCase()) { //TO DO: optimize switch
+        switch(args[0].toLowerCase()) {
             case "invite":
                 handleInviteCommand(player, args, partyManager);
                 break;
@@ -59,6 +58,9 @@ public class PartyCommands extends BaseCommand {
             case "chat":
                 handleChatCommand(player, args, partyManager);
                 break;
+            case "reload":
+                handleReloadCommand(player);
+                break;
             default:
                 sendHelpMessage(player);
                 break;
@@ -66,23 +68,23 @@ public class PartyCommands extends BaseCommand {
     }
     private void sendHelpMessage(Player player) {
         player.sendMessage(CC.translate("&9--- Party Commands ---"));
-        player.sendMessage(CC.translate("&e/party invite <player> &7Invites a player."));
-        player.sendMessage(CC.translate("&e/party accept &7Accepts an invite to join a party."));
-        player.sendMessage(CC.translate("&e/party deny &7Denies an invite to join a party."));
-        player.sendMessage(CC.translate("&e/party leave &7Leaves your current party."));
-        player.sendMessage(CC.translate("&e/party kick <player> &7Kicks the player from the party."));
-        player.sendMessage(CC.translate("&e/party disband &7Disbands the party."));
-        player.sendMessage(CC.translate("&e/party list &7Lists the party's members."));
-        player.sendMessage(CC.translate("&e/party chat <message> &7Sends a message to your party members."));
+        player.sendMessage(CC.translate("&e/party invite <player> ") + messageManager.getMessage("party-invite-info", false));
+        player.sendMessage(CC.translate("&e/party accept ") + messageManager.getMessage("party-accept-info", false));
+        player.sendMessage(CC.translate("&e/party deny ") + messageManager.getMessage("party-deny-info", false));
+        player.sendMessage(CC.translate("&e/party leave ") + messageManager.getMessage("party-leave-info", false));
+        player.sendMessage(CC.translate("&e/party kick <player> ") + messageManager.getMessage("party-kick-info", false));
+        player.sendMessage(CC.translate("&e/party disband ") + messageManager.getMessage("party-disband-info", false));
+        player.sendMessage(CC.translate("&e/party list ") + messageManager.getMessage("party-list-info", false));
+        player.sendMessage(CC.translate("&e/party chat <message> ") + messageManager.getMessage("party-chat-info", false));
     }
     private void handleInviteCommand(Player player, String[] args, IPartyManager manager) {
         if(args.length != 2) {
-            player.sendMessage(CC.translate(PARTY_PREFIX + " &9Usage: /party invite <player>"));
+            player.sendMessage(messageManager.getMessage("correct-command-usage", "command", "/party invite <player>"));
             return;
         }
         Player target = Bukkit.getPlayer(args[1]);
         if(target == null) {
-            player.sendMessage(CC.translate(PARTY_PREFIX + " &9That player doesn't exist."));
+            player.sendMessage(messageManager.getMessage("player-invalid"));
             return;
         }
         if(!manager.isInParty(player)) manager.createParty(player);
@@ -91,7 +93,7 @@ public class PartyCommands extends BaseCommand {
     private void handleListCommand(Player player, IPartyManager manager) {
         Optional<Party> optional = manager.getParty(player);
         if(!optional.isPresent()) {
-            player.sendMessage(CC.translate(PARTY_PREFIX + " &9You're not in any party"));
+            player.sendMessage(messageManager.getMessage("not-in-party"));
             return;
         }
         Party party = optional.get();
@@ -109,19 +111,19 @@ public class PartyCommands extends BaseCommand {
     private void handleDisbandCommand(Player player, IPartyManager manager) {
         Optional<Party> optional = manager.getParty(player);
         if(!optional.isPresent()) {
-            player.sendMessage(CC.translate(PARTY_PREFIX + " &9You're not in any party."));
+            player.sendMessage(messageManager.getMessage("not-in-party"));
             return;
         }
         Party party = optional.get();
         if(!party.isLeader(player.getUniqueId())) {
-            player.sendMessage(CC.translate(PARTY_PREFIX + " &9Only the leader can disband the party."));
+            player.sendMessage(messageManager.getMessage("leader-requirement"));
             return;
         }
         manager.disbandParty(party);
     }
-    private void handleKickCommand(Player player, String[] args, IPartyManager manager) { //Add something to kick offline players
+    private void handleKickCommand(Player player, String[] args, IPartyManager manager) {
         if(args.length != 2) {
-            player.sendMessage(CC.translate(PARTY_PREFIX + " &9Usage: /party kick <player>"));
+            player.sendMessage(messageManager.getMessage("correct-command-usage", "command", "/party kick <player>"));
             return;
         }
         Player p = Bukkit.getPlayer(args[1]);
@@ -135,7 +137,7 @@ public class PartyCommands extends BaseCommand {
     private void handleChatCommand(Player player, String[] args, IPartyManager manager) {
         Optional<Party> optional = manager.getParty(player);
         if(!optional.isPresent()) {
-            player.sendMessage(CC.translate(PARTY_PREFIX + " &9You're not in any party"));
+            player.sendMessage(messageManager.getMessage("not-in-party"));
             return;
         }
         Party party = optional.get();
@@ -148,11 +150,20 @@ public class PartyCommands extends BaseCommand {
         }else {
             if(PlayerChat.partyChatPlayers.contains(player.getUniqueId())) {
                 PlayerChat.partyChatPlayers.remove(player.getUniqueId());
-                player.sendMessage(CC.translate(PARTY_PREFIX + " &9Party chat disabled."));
+                player.sendMessage(messageManager.getMessage("party-chat-disabled"));
             }else {
                 PlayerChat.partyChatPlayers.add(player.getUniqueId());
-                player.sendMessage(CC.translate(PARTY_PREFIX + " &9Party chat enabled."));
+                player.sendMessage(messageManager.getMessage("party-chat-enabled"));
             }
         }
+    }
+    private void handleReloadCommand(Player player) {
+        if(!player.isOp()) {
+            player.sendMessage(CC.translate("&cOnly operators can run this command."));
+            return;
+        }
+        player.sendMessage(CC.translate("&aReloading party config..."));
+        messageManager.reloadMessages(true, false);
+        player.sendMessage(CC.translate("&aConfiguration reloaded successfully."));
     }
 }
