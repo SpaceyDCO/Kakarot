@@ -6,10 +6,10 @@ import github.kakarot.Parties.Party;
 import github.kakarot.Raids.Arena;
 import github.kakarot.Raids.Game.GameSession;
 import github.kakarot.Raids.Scenario.Scenario;
-import github.kakarot.Tools.CC;
 import github.kakarot.Tools.MessageManager;
 import noppes.npcs.api.entity.IEntity;
 import org.bukkit.entity.Player;
+
 import java.util.*;
 
 public class RaidManager {

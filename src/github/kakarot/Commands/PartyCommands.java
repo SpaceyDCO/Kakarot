@@ -58,9 +58,6 @@ public class PartyCommands extends BaseCommand {
             case "chat":
                 handleChatCommand(player, args, partyManager);
                 break;
-            case "test":
-                Main.instance.getRaidManager().startGame(player, "default_arena");
-                break;
             default:
                 sendHelpMessage(player);
                 break;

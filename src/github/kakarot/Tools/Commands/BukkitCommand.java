@@ -1,7 +1,7 @@
 package github.kakarot.Tools.Commands;
 
-import org.bukkit.command.*;
 import org.bukkit.command.Command;
+import org.bukkit.command.*;
 import org.bukkit.plugin.Plugin;
 
 import java.util.List;
