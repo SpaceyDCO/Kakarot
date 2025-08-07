@@ -69,17 +69,17 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         instance = this;
         this.messageManager = new MessageManager(this);
+
         //Parties
         this.partyManager = new PartyManager(this, this.messageManager);
         loadPartyEvents();
         //Parties
-        classesRegistration.loadCommands("github.kakarot.Commands");
-        Bukkit.getConsoleSender().sendMessage("Activated plugin Kakarot");
-        Bukkit.getConsoleSender().sendMessage("By: SpaceyDCO");
+
         //Trivia
         //readTriviaConfig();
         //TriviasRunnable.runnableTrivias.runTaskTimer(this, TriviasRunnable.TriviaCooldown, TriviasRunnable.TriviaCooldown); Disabled trivia runnable
         activeTrivia = false;
+        //Trivia
 
         //Arenas
         this.configManager = new ConfigManager(this);
@@ -89,6 +89,10 @@ public class Main extends JavaPlugin {
         this.gameListener = new GameListener(this, this.raidManager);
         getServer().getPluginManager().registerEvents(this.gameListener, this);
         //Arenas
+
+        classesRegistration.loadCommands("github.kakarot.Commands");
+        Bukkit.getConsoleSender().sendMessage("Activated plugin Kakarot");
+        Bukkit.getConsoleSender().sendMessage("By: SpaceyDCO");
     }
     @Override
     public void onDisable() {
