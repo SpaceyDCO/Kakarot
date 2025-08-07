@@ -28,6 +28,7 @@ import static github.kakarot.Raids.Managers.RaidManager.RAID_PREFIX;
 public class GameSession {
     @Getter private GameState currentState;
     @Getter private int currentWaveNumber;
+    @Getter private final String arenaFileName;
     @Getter private final Set<UUID> alivePlayers;
     @Getter private final Set<Integer> aliveNpcs = new HashSet<>();
     @Getter private final Map<UUID, Location> originalLocation = new HashMap<>();
@@ -40,10 +41,11 @@ public class GameSession {
     @Getter private IWorld world;
     private BukkitTask activeTask = null;
     private BukkitTask watchdogTask = null;
-    private final int inactivityCooldownInMinutes = 10;
+    private final int inactivityCooldownInMinutes = 2;
 
-    public GameSession(Main plugin, RaidManager raidManager, Party party, Arena arena, Scenario scenario) {
+    public GameSession(Main plugin, String arenaFileName, RaidManager raidManager, Party party, Arena arena, Scenario scenario) {
         this.plugin = plugin;
+        this.arenaFileName = arenaFileName;
         this.raidManager = raidManager;
         this.party = party;
         this.arena = arena;
@@ -86,12 +88,13 @@ public class GameSession {
             NpcAPI api = (NpcAPI) NpcAPI.Instance();
             if(api == null) {
                 party.broadcast(CC.translate(RAID_PREFIX + " &9CustomNPCs+ API not found, aborting game...\n&9Report this to an admin."));
-                plugin.getLogger().severe("Could not get CustomNpcs+ API, aborting arena " + this.arena.getArenaName());
+                plugin.getLogger().severe("Could not get CustomNpcs+ API, aborting arena " + this.getArenaFileName());
                 endGame(false);
                 return;
             }
             this.world = api.getPlayer(refPlayer.getName()).getWorld();
             final int FIRST_WAVE_COOLDOWN_SECONDS = 10;
+            party.broadcast(CC.translate(RAID_PREFIX + " &9&lREMINDER: &r&9Not killing enemies for " + this.inactivityCooldownInMinutes + " minutes will result in the game being ended due to inactivity."));
             party.broadcast(CC.translate(RAID_PREFIX + " &9First wave will start in &b" + FIRST_WAVE_COOLDOWN_SECONDS + " &9seconds."));
             this.activeTask = new CountdownHelper(plugin).startCountdown(FIRST_WAVE_COOLDOWN_SECONDS, (remaining) -> {
                 party.broadcast(CC.translate(RAID_PREFIX + " &9Starting in " + remaining + " second" + (remaining > 1 ? "s" : "") + "..."));
@@ -102,7 +105,6 @@ public class GameSession {
                     startWave(firstWave.get());
                     party.playSound(Sound.ORB_PICKUP, 1, 1);
                     this.watchdogTask = new BukkitRunnable() {
-                        final boolean[] warned = {false};
                         @Override
                         public void run() {
                             if(currentState == GameState.ENDING) {
@@ -112,10 +114,6 @@ public class GameSession {
                             if(currentState == GameState.WAVE_IN_PROGRESS) {
                                 long timeInMillis = inactivityCooldownInMinutes * 60 * 1000;
                                 long timeSinceLastKill = System.currentTimeMillis() - lastNpcKillTime;
-                                if(timeSinceLastKill > (timeSinceLastKill/2) && !warned[0]) {
-                                    party.broadcast(CC.translate(RAID_PREFIX + " &9WARNING: game will end in " + (inactivityCooldownInMinutes/2) + " minutes due to inactivity. Defeat an enemy to cancel."));
-                                    warned[0] = true;
-                                }
                                 if(timeSinceLastKill > timeInMillis) {
                                     party.broadcast(CC.translate(RAID_PREFIX + " &9Game has ended due to inactivity."));
                                     endGame(false);
@@ -123,7 +121,7 @@ public class GameSession {
                                 }
                             }
                         }
-                    }.runTaskTimer(plugin, 20L * 30, 20L * 30);
+                    }.runTaskTimer(plugin, 20L * 60, 20L * 60);
                 }else {
                     party.broadcast(CC.translate(RAID_PREFIX + " &cERROR: &9This scenario does not have Wave 1 defined. Aborting game...\n&9Report this to an admin."));
                     endGame(false);
@@ -144,7 +142,7 @@ public class GameSession {
         for(SpawnInfo spawnInfo : wave.getSpawns()) {
             SerializableLocation serializableLocation = arena.getNpcSpawnPoint(spawnInfo.getSpawnPointName());
             if(serializableLocation == null) {
-                plugin.getLogger().warning("In arena " + arena.getArenaName() + ", scenario " + arena.getScenarioName() + ", wave " + currentWaveNumber + ": Could not find NPC Spawn point named " + spawnInfo.getSpawnPointName() + ". Skipping this spawn.");
+                plugin.getLogger().warning("In arena " + this.getArenaFileName() + ", scenario " + arena.getScenarioName() + ", wave " + currentWaveNumber + ": Could not find NPC Spawn point named " + spawnInfo.getSpawnPointName() + ". Skipping this spawn.");
                 continue;
             }
             Location spawnLoc = serializableLocation.toBukkitLocation(arena.getWorldName());
@@ -154,6 +152,7 @@ public class GameSession {
                     if(npc != null) {
                         if(npc instanceof ICustomNpc) {
                             ICustomNpc<?> cNpc = (ICustomNpc<?>) npc; //IDEAS: SET NPC'S JOB TO CHUNK LOADER TO PREVENT CHUNK UNLOADING
+                            cNpc.setStoredData("SPACEY_ARENA_SYSTEM_NPC", this.arenaFileName);
                             aliveNpcs.add(cNpc.getEntityId());
                         }else plugin.getLogger().warning("Could not spawn NPC " + spawnInfo.getNpcID() + ". Perhaps it's not a CustomNpc?. Skipping this entry...");
                     }else plugin.getLogger().warning("Could not spawn NPC " + spawnInfo.getNpcID() + " for wave " + this.currentWaveNumber + ". It might not exist in the NPC cloner tab. Skipping this entry...");
@@ -162,6 +161,7 @@ public class GameSession {
                 }
             }
         }
+        this.lastNpcKillTime = System.currentTimeMillis();
         if(aliveNpcs.isEmpty()) {
             party.broadcast(CC.translate(RAID_PREFIX + " &9No enemies were spawned this wave (maybe there was an error).\n&9Report this to an admin."));
             party.broadcast(CC.translate(RAID_PREFIX + " &9Starting next wave..."));

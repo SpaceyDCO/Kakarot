@@ -19,22 +19,19 @@ public class GameListener implements Listener {
     public GameListener(Main plugin, RaidManager raidManager) {
         this.plugin = plugin;
         this.raidManager = raidManager;
-        NpcAPI api = (NpcAPI) NpcAPI.Instance();
-        if(api != null) {
-            api.events().register(this);
-        }else {
-            plugin.getLogger().severe("CustomNpcs+ API not found. Raids won't work properly.");
-        }
     }
 
     public void onNpcDied(NpcEvent.DiedEvent event) {
-        int npcId = event.getNpc().getEntityId(); //Change to getMCEntity().getEntityID later
-        //SELF NOTE: I COULD BE ABLE TO OPTIMIZE THIS FOR BY ADDING A TEMPDATA LINKING EACH SPAWNED NPC TO THE ARENA'S NAME THEY WERE SUPPOSED TO BE SPAWNED IN
-        for(GameSession session : raidManager.getAllActiveSessions()) { //Might lag if there are hundreds of sessions
-            if(session.getAliveNpcs().contains(npcId)) {
-                session.onNpcDied(npcId);
-                break;
-            }
+        if(event == null) {
+            plugin.getLogger().severe("===== CUSTOMNPC EVENT ERROR =====");
+            plugin.getLogger().severe("'event' parameter is null, there might be an error with an npc's script.");
+            return;
+        }
+        if(event.getNpc().hasStoredData("SPACEY_ARENA_SYSTEM_NPC")) {
+            int npcId = event.getNpc().getEntityId();
+            String arenaName = (String) event.getNpc().getStoredData("SPACEY_ARENA_SYSTEM_NPC");
+            Optional<GameSession> session = raidManager.getSessionByArena(arenaName);
+            session.ifPresent(gameSession -> gameSession.onNpcDied(npcId));
         }
     }
 
