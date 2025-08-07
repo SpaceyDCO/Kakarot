@@ -14,6 +14,7 @@ import github.kakarot.Raids.Managers.ConfigManager;
 import github.kakarot.Raids.Managers.RaidManager;
 import github.kakarot.Tools.ClassesRegistration;
 import github.kakarot.Tools.Commands.CommandFramework;
+import github.kakarot.Tools.MessageManager;
 import github.kakarot.Trivias.TriviaDataHandler;
 import github.kakarot.Trivias.TriviasData;
 import lombok.Getter;
@@ -57,6 +58,7 @@ public class Main extends JavaPlugin {
     //Arenas
     @Getter private ConfigManager configManager;
     @Getter private RaidManager raidManager;
+    @Getter private MessageManager messageManager;
     private GameListener gameListener;
     //Arenas
 
@@ -66,8 +68,9 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        this.messageManager = new MessageManager(this);
         //Parties
-        this.partyManager = new PartyManager(this);
+        this.partyManager = new PartyManager(this, this.messageManager);
         loadPartyEvents();
         //Parties
         classesRegistration.loadCommands("github.kakarot.Commands");
@@ -82,7 +85,7 @@ public class Main extends JavaPlugin {
         this.configManager = new ConfigManager(this);
         this.configManager.loadAllConfig();
         getServer().getScheduler().runTaskLater(this, this::cleanUpNpcs, 40L);
-        this.raidManager = new RaidManager(this, this.configManager, this.partyManager);
+        this.raidManager = new RaidManager(this, this.configManager, this.partyManager, this.messageManager);
         this.gameListener = new GameListener(this, this.raidManager);
         getServer().getPluginManager().registerEvents(this.gameListener, this);
         //Arenas

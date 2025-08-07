@@ -7,6 +7,7 @@ import github.kakarot.Raids.Arena;
 import github.kakarot.Raids.Game.GameSession;
 import github.kakarot.Raids.Scenario.Scenario;
 import github.kakarot.Tools.CC;
+import github.kakarot.Tools.MessageManager;
 import noppes.npcs.api.entity.IEntity;
 import org.bukkit.entity.Player;
 import java.util.*;
@@ -17,11 +18,13 @@ public class RaidManager {
     private final Main plugin;
     private final ConfigManager configManager;
     private final IPartyManager partyManager;
+    private final MessageManager messageManager;
     public static final String RAID_PREFIX = "&7[&cRaids&7]";
-    public RaidManager(Main plugin, ConfigManager configManager, IPartyManager partyManager) {
+    public RaidManager(Main plugin, ConfigManager configManager, IPartyManager partyManager, MessageManager messageManager) {
         this.plugin = plugin;
         this.configManager = configManager;
         this.partyManager = partyManager;
+        this.messageManager = messageManager;
     }
 
     /**
@@ -33,28 +36,28 @@ public class RaidManager {
     public void startGame(Player leader, String arenaName) { //ADD A CHECK TO SEE IF THIS PARTY IS ALREADY IN A GAME + ADD onJoinPartyEvent and onLeavePartyEvent
         plugin.getServer().getConsoleSender().sendMessage("Player: " + leader.getName());
         if(!partyManager.isInParty(leader)) {
-            leader.sendMessage(CC.translate(RAID_PREFIX + " &9You must be in a party to start a game."));
+            leader.sendMessage(messageManager.getMessage("system.not-in-party"));
             return;
         }
         Optional<Party> partyOptional = partyManager.getParty(leader);
         if(!partyOptional.isPresent() || !partyOptional.get().isLeader(leader.getUniqueId())) {
-            leader.sendMessage(CC.translate(RAID_PREFIX + " &9You must be the party leader to start a game."));
+            leader.sendMessage(messageManager.getMessage("system.not-party-leader"));
             return;
         }
         Party party = partyOptional.get();
         Optional<Arena> arenaOptional = configManager.getArena(arenaName);
         if(!arenaOptional.isPresent()) {
-            leader.sendMessage(CC.translate(RAID_PREFIX + " &9Arena &b" + arenaName + " &9not found."));
+            leader.sendMessage(messageManager.getMessage("errors.arena-not-found", "arena_name", arenaName));
             return;
         }
         Arena arena = arenaOptional.get();
         if(activeSessionsByArena.containsKey(arenaName)) {
-            leader.sendMessage(CC.translate(RAID_PREFIX + " &9Can't start game.\nThis arena is currently in use."));
+            leader.sendMessage(messageManager.getMessage("system.arena-in-use"));
             return;
         }
         Optional<Scenario> scenarioOptional = configManager.getScenario(arena.getScenarioName());
         if(!scenarioOptional.isPresent()) {
-            leader.sendMessage(CC.translate(RAID_PREFIX + " &9Scenario &b" + arena.getScenarioName() + " &9for arena &b" + arena.getArenaName() + " &9not found.\n&9Please contact an admin."));
+            leader.sendMessage(messageManager.getMessage("arena-not-valid", "arena_name", arenaName));
             plugin.getLogger().severe("-----------------------");
             plugin.getLogger().severe("FATAL ERROR: Scenario " + arena.getScenarioName() + " from arena " + arenaName + " is missing or corrupt!");
             plugin.getLogger().severe("-----------------------");
@@ -62,7 +65,7 @@ public class RaidManager {
         }
         Scenario scenario = scenarioOptional.get();
         plugin.getLogger().info("Starting a new game in arena " + arenaName + " with scenario " + scenario.getScenarioName() + ".\nParty led by: " + leader.getName());
-        GameSession gameSession = new GameSession(plugin, arenaName, this, party, arena, scenario);
+        GameSession gameSession = new GameSession(plugin, arenaName, this, party, arena, scenario, messageManager);
         activeSessionsByArena.put(arenaName, gameSession);
         for(UUID member : party.getMembers()) {
             activeSessionsByPlayer.put(member, gameSession);

@@ -10,6 +10,7 @@ import github.kakarot.Raids.Scenario.Scenario;
 import github.kakarot.Raids.Scenario.SpawnInfo;
 import github.kakarot.Raids.Scenario.Wave;
 import github.kakarot.Tools.CC;
+import github.kakarot.Tools.MessageManager;
 import lombok.Getter;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.ICustomNpc;
@@ -28,6 +29,7 @@ import java.util.logging.Level;
 import static github.kakarot.Raids.Managers.RaidManager.RAID_PREFIX;
 
 public class GameSession {
+    private MessageManager messageManager;
     @Getter private GameState currentState;
     @Getter private int currentWaveNumber;
     @Getter private final String arenaFileName;
@@ -45,7 +47,7 @@ public class GameSession {
     private BukkitTask watchdogTask = null;
     private final int inactivityCooldownInMinutes = 15;
 
-    public GameSession(Main plugin, String arenaFileName, RaidManager raidManager, Party party, Arena arena, Scenario scenario) {
+    public GameSession(Main plugin, String arenaFileName, RaidManager raidManager, Party party, Arena arena, Scenario scenario, MessageManager messageManager) {
         this.plugin = plugin;
         this.arenaFileName = arenaFileName;
         this.raidManager = raidManager;
@@ -56,13 +58,14 @@ public class GameSession {
         this.alivePlayers = new HashSet<>(party.getMembers());
         this.currentWaveNumber = 0;
         this.currentState = GameState.LOBBY;
+        this.messageManager = messageManager;
     }
 
     public void initializeGame() {
-        party.broadcast(CC.translate(RAID_PREFIX + " &9Game starting in arena &b" + arena.getArenaName()));
+        party.broadcast(messageManager.getMessage("game.starting", "arena_name", arena.getArenaName()));
         Location spawnLocation = arena.getPlayerSpawnLocation().toBukkitLocation(arena.getWorldName());
         if(spawnLocation == null) {
-            party.broadcast(CC.translate(RAID_PREFIX + " &9World for this arena could not be found, aborting game...\n&9Report this to an admin."));
+            party.broadcast(messageManager.getMessage("errors.world-not-found"));
             raidManager.endGame(this);
             return;
         }
@@ -83,23 +86,24 @@ public class GameSession {
                         .orElse(null);
             }
             if(refPlayer == null || !refPlayer.getWorld().getName().equals(this.arena.getWorldName())) {
-                party.broadcast(CC.translate(RAID_PREFIX + " &9Error: Could not validate arena's world.\n&9This might have been caused due to players leaving the arena's designed world."));
+                party.broadcast(messageManager.getMessage("errors.world-validation-failed"));
                 endGame(false);
                 return;
             }
             NpcAPI api = (NpcAPI) NpcAPI.Instance();
             if(api == null) {
-                party.broadcast(CC.translate(RAID_PREFIX + " &9CustomNPCs+ API not found, aborting game...\n&9Report this to an admin."));
+                party.broadcast(messageManager.getMessage("errors.cnpc-api-not-found"));
                 plugin.getLogger().severe("Could not get CustomNpcs+ API, aborting arena " + this.getArenaFileName());
                 endGame(false);
                 return;
             }
             this.world = api.getPlayer(refPlayer.getName()).getWorld();
             final int FIRST_WAVE_COOLDOWN_SECONDS = 10;
-            party.broadcast(CC.translate(RAID_PREFIX + " &9&lREMINDER: &r&9Not killing enemies for &b" + this.inactivityCooldownInMinutes + " &9minutes will result in the game being ended due to inactivity."));
-            party.broadcast(CC.translate(RAID_PREFIX + " &9First wave will start in &b" + FIRST_WAVE_COOLDOWN_SECONDS + " &9seconds."));
+            party.broadcast(messageManager.getMessage("inactivity-warning", "minutes", String.valueOf(this.inactivityCooldownInMinutes)));
+            party.broadcast(messageManager.getMessage("wave.first-wave-countdown", "count", String.valueOf(FIRST_WAVE_COOLDOWN_SECONDS)));
             this.activeTask = new CountdownHelper(plugin).startCountdown(FIRST_WAVE_COOLDOWN_SECONDS, (remaining) -> {
-                party.broadcast(CC.translate(RAID_PREFIX + " &9Starting in " + remaining + " second" + (remaining > 1 ? "s" : "") + "..."));
+                String plural = remaining > 1 ? "s" : "";
+                party.broadcast(messageManager.getMessage("wave.countdown-tick", "count", String.valueOf(remaining), "plural_s", plural));
                 party.playSound(Sound.NOTE_BASS, 1f, 1f);
             }, () -> {
                 Optional<Wave> firstWave = this.scenario.getNextWave(0);
@@ -117,9 +121,9 @@ public class GameSession {
                                 long timeInMillis = inactivityCooldownInMinutes * 60 * 1000;
                                 long timeSinceLastKill = System.currentTimeMillis() - lastNpcKillTime;
                                 if(timeSinceLastKill > timeInMillis) {
-                                    party.broadcast(CC.translate(RAID_PREFIX + " &9Game has ended due to inactivity."));
+                                    party.broadcast(messageManager.getMessage("system.inactivity-end"));
                                     for(Player player : Bukkit.getOnlinePlayers()) {
-                                        if(player != null) player.sendMessage(CC.translate(RAID_PREFIX + " &9Arena &b" + arena.getArenaName() + " resetted due to inactivity."));
+                                        if(player != null) player.sendMessage(messageManager.getMessage("inactivity-reset-broadcast", "arena_name", arena.getArenaName()));
                                     }
                                     endGame(false);
                                     this.cancel();
@@ -128,7 +132,7 @@ public class GameSession {
                         }
                     }.runTaskTimer(plugin, 20L * 60, 20L * 60);
                 }else {
-                    party.broadcast(CC.translate(RAID_PREFIX + " &cERROR: &9This scenario does not have Wave 1 defined. Aborting game...\n&9Report this to an admin."));
+                    party.broadcast(messageManager.getMessage("errors.no-wave-one"));
                     endGame(false);
                 }
             });
@@ -140,7 +144,7 @@ public class GameSession {
         this.currentWaveNumber = wave.getWaveNumber();
         party.broadcast(CC.translate(wave.getStartMessage()));
         if(this.world == null) {
-            party.broadcast(CC.translate(RAID_PREFIX + " &9FATAL ERROR: World context not found. Aborting game...\n&9Report this to an admin."));
+            party.broadcast(messageManager.getMessage("errors.world-context-not-found"));
             endGame(false);
             return;
         }
@@ -168,8 +172,7 @@ public class GameSession {
         }
         this.lastNpcKillTime = System.currentTimeMillis();
         if(aliveNpcs.isEmpty()) {
-            party.broadcast(CC.translate(RAID_PREFIX + " &9No enemies were spawned this wave (maybe there was an error).\n&9Report this to an admin."));
-            party.broadcast(CC.translate(RAID_PREFIX + " &9Starting next wave..."));
+            party.broadcast(messageManager.getMessage("errors.no-enemies-spawned"));
             startWaveCooldown(isFinalWave());
         }
     }
@@ -181,16 +184,17 @@ public class GameSession {
         }
         Optional<Wave> nextWave = scenario.getNextWave(this.currentWaveNumber);
         if(!nextWave.isPresent()) { //Just in case
-            party.broadcast(CC.translate(RAID_PREFIX + " &9All waves have been cleared..."));
+            party.broadcast(messageManager.getMessage("wave.all-cleared"));
             endGame(true);
             return;
         }
         Wave next = nextWave.get();
         int cooldown = scenario.getWaveCooldownInSeconds();
-        party.broadcast(CC.translate(RAID_PREFIX + " &9Wave " + this.currentWaveNumber + " cleared!. Starting next wave..."));
-        party.broadcast(CC.translate(RAID_PREFIX + " &9Next wave begins in " + cooldown + " seconds..."));
+        party.broadcast(messageManager.getMessage("wave.cleared", "wave", String.valueOf(this.currentWaveNumber)));
+        party.broadcast(messageManager.getMessage("wave.next-wave-countdown", "count", String.valueOf(cooldown)));
         this.activeTask = new CountdownHelper(plugin).startCountdown(cooldown, (remaining) -> {
-            party.broadcast(CC.translate(RAID_PREFIX + " &9Beginning in " + remaining + " second" + (remaining > 1 ? "s" : "") + "..."));
+            String plural = remaining > 1 ? "s" : "";
+            party.broadcast(messageManager.getMessage("wave.countdown-tick", "count", String.valueOf(remaining), "plural_s", plural));
             party.playSound(Sound.NOTE_BASS, 1f, 1f);
         }, () -> {
             startWave(next);
@@ -204,14 +208,14 @@ public class GameSession {
         if(this.currentState == GameState.ENDING) return;
         this.currentState = GameState.ENDING;
         if(victory) {
-            party.broadcast(CC.translate("&6========== VICTORY! =========="));
-            party.broadcast(CC.translate("&eYou have defeated all the enemies!"));
-            party.broadcast(CC.translate("&6=================================="));
+            party.broadcast(messageManager.getMessage("game.victory-header"));
+            party.broadcast(messageManager.getMessage("game.victory-body"));
+            party.broadcast(messageManager.getMessage("game.victory-footer"));
             new CountdownHelper(plugin).startCountdown(10, party::spawnRandomFirework);
         }else {
-            party.broadcast(CC.translate("&4========== DEFEAT =========="));
-            party.broadcast(CC.translate("&7Your party has been overwhelmed. Get stronger and try again."));
-            party.broadcast(CC.translate("&4=================================="));
+            party.broadcast(messageManager.getMessage("game.defeat-header"));
+            party.broadcast(messageManager.getMessage("game.defeat-body"));
+            party.broadcast(messageManager.getMessage("game.defeat-footer"));
             party.playSound(Sound.WITHER_DEATH, 1f, 1f);
         }
         if(this.activeTask != null) {
@@ -225,8 +229,7 @@ public class GameSession {
         for(Integer npcID : aliveNpcs) {
             IEntity<?> entity = this.world.getEntityByID(npcID);
             if(entity != null) {
-                entity.despawn(); //SELF NOTE : SET A UNIQUE NAME SO IT'S 100% SURE IT ONLY DESPAWNS NPCS FROM THE RAIDS
-                //if(npc != null) npc.despawn();
+                entity.despawn();
             }
         }
         aliveNpcs.clear();
@@ -254,7 +257,7 @@ public class GameSession {
         if(player == null) return;
         if(!alivePlayers.contains(player.getUniqueId())) {
             event.setCanceled(true);
-            player.sendMessage(CC.translate(RAID_PREFIX + " &9You are not registered in this instance."));
+            player.sendMessage(messageManager.getMessage("system.outsider-damage-blocked"));
         }
     }
     public void onNpcDied(int npcid) {
@@ -262,10 +265,10 @@ public class GameSession {
         aliveNpcs.remove(npcid);
         this.lastNpcKillTime = System.currentTimeMillis();
         if(aliveNpcs.isEmpty()) startWaveCooldown(isFinalWave());
-        else party.broadcast(CC.translate(RAID_PREFIX + " &9Enemies remaining: &b" + aliveNpcs.size()));
+        else party.broadcast(messageManager.getMessage("wave.enemies-remaining", "count", String.valueOf(aliveNpcs.size())));
     }
     public void onPlayerDied(Player player) {
-        party.broadcast(CC.translate(RAID_PREFIX + " &b" + player.getName() + " &9has been defeated."));
+        party.broadcast(messageManager.getMessage("player.defeated", "player_name", player.getName()));
         party.playSound(Sound.AMBIENCE_THUNDER, 1f, 1f);
         alivePlayers.remove(player.getUniqueId());
         Location spectatorSpawn = arena.getSpectatorSpawn().toBukkitLocation(arena.getWorldName());
@@ -273,7 +276,7 @@ public class GameSession {
         checkLossCondition();
     }
     public void onPlayerQuit(Player player) {
-        party.broadcast(CC.translate(RAID_PREFIX + " &b" + player.getName() + " &9has disconnected."));
+        party.broadcast(messageManager.getMessage("player.disconnected", "player_name", player.getName()));
         Location ogLoc = originalLocation.get(player.getUniqueId());
         if(ogLoc != null) player.teleport(ogLoc);
         else {
@@ -285,7 +288,7 @@ public class GameSession {
         checkLossCondition();
     }
     public void onPlayerLeftParty(Player player) {
-        party.broadcast(CC.translate(RAID_PREFIX + " &b" + player.getName() + " &9has left the party."));
+        party.broadcast(messageManager.getMessage("player.left-party", "player_name", player.getName()));
         Location ogLoc = originalLocation.get(player.getUniqueId());
         if(ogLoc != null) player.teleport(ogLoc);
         else {
@@ -299,7 +302,7 @@ public class GameSession {
     //EVENTS
     private void checkLossCondition() {
         if(alivePlayers.isEmpty()) {
-            party.broadcast(CC.translate(RAID_PREFIX + " &9All players have been defeated..."));
+            party.broadcast(messageManager.getMessage("all-defeated"));
             endGame(false);
         }
     }

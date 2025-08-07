@@ -1,0 +1,62 @@
+# ----------------------------------------------------------------- #
+#                        Raids Messages                             #
+# ----------------------------------------------------------------- #
+#
+# Placeholders:
+# {arena_name}      - The display name of the arena.
+# {player_name}     - The name of a player.
+# {wave}            - The current wave number.
+# {count}           - A number (e.g., enemies remaining, seconds).
+# {minutes}         - The number of minutes for the inactivity timer.
+# {plural_s}        - Used for pluralizing words like "second(s)".
+#
+
+# --- Core Settings ---
+prefix: "&8[&dRaids&8] &9"
+
+# --- Game State Messages ---
+game:
+  starting: "Game starting in arena: &b{arena_name}"
+  victory-header: "&6========== VICTORY! =========="
+  victory-body: "&eYou have successfully defended the arena!"
+  victory-footer: "&6=================================="
+  defeat-header: "&4========== DEFEAT =========="
+  defeat-body: "&7Your party has been overwhelmed. Get stronger and try again."
+  defeat-footer: "&4=================================="
+
+# --- Wave Progression Messages ---
+wave:
+  countdown-tick: "Starting in &b{count}&9 second{plural_s}..."
+  first-wave-countdown: "First wave will start in &b{count}&9 seconds."
+  next-wave-countdown: "Next wave begins in &b{count}&9 seconds."
+  cleared: "Wave &b{wave}&9 cleared! Preparing for the next wave."
+  all-cleared: "&aAll waves have been cleared!"
+  enemies-remaining: "Enemies remaining: &b{count}"
+
+# --- Player Status & Events ---
+player:
+  defeated: "&b{player_name}&9 has been defeated."
+  disconnected: "&7{player_name} has disconnected."
+  left-party: "&7{player_name} has left the party."
+  all-defeated: "&cAll players have been defeated..."
+
+# --- System & Error Messages ---
+system:
+  not-in-party: "&9You must be in a party to start a game."
+  not-party-leader: "&9You must be the party leader to start a game."
+  arena-in-use: " &9Can't start game. This arena is currently in use."
+  inactivity-warning: "&lREMINDER:&r &9Not killing enemies for &b{minutes}&9 minutes will result in the game ending."
+  inactivity-end: "&cThe game has ended due to inactivity."
+  inactivity-reset-broadcast: "Arena &b{arena_name}&9 has been reset due to inactivity."
+  outsider-damage-blocked: "&cYou cannot interfere with this battle."
+
+  # Errors visible to players
+  errors:
+    arena-not-valid: "&9Arena {arena_name} not valid. Report this to an admin."
+    arena-not-found: "&9Arena {arena_name} not found."
+    world-not-found: "&cERROR: The world for this arena could not be found. Aborting game."
+    world-validation-failed: "&cERROR: Could not validate the arena's world. This may be caused by players leaving the world."
+    cnpc-api-not-found: "&cERROR: The CustomNPCs+ API was not found. Aborting game."
+    world-context-not-found: "&cFATAL ERROR: World context not found. Aborting game."
+    no-wave-one: "&cERROR: This scenario does not have Wave 1 defined. Aborting game."
+    no-enemies-spawned: "&eNo enemies spawned this wave. There may be a configuration error. Skipping..."
