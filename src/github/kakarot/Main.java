@@ -15,6 +15,7 @@ import github.kakarot.Raids.Managers.RaidManager;
 import github.kakarot.Tools.ClassesRegistration;
 import github.kakarot.Tools.Commands.CommandFramework;
 import github.kakarot.Tools.MessageManager;
+import github.kakarot.Tools.PacketHandler;
 import github.kakarot.Trivias.TriviaDataHandler;
 import github.kakarot.Trivias.TriviasData;
 import lombok.Getter;
@@ -221,4 +222,5 @@ public class Main extends JavaPlugin {
         this.gameListener.onNpcDamaged(event);
     }
     //RAIDS CNPC EVENTS
+    public PacketHandler getPacketHandler() { return new PacketHandler(); }
 }
