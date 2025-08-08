@@ -20,6 +20,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.NpcEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -109,7 +110,6 @@ public class GameSession {
                 Optional<Wave> firstWave = this.scenario.getNextWave(0);
                 if(firstWave.isPresent()) {
                     startWave(firstWave.get());
-                    party.playSound(Sound.ORB_PICKUP, 1, 1);
                     this.watchdogTask = new BukkitRunnable() {
                         @Override
                         public void run() {
@@ -143,6 +143,14 @@ public class GameSession {
         this.currentState = GameState.WAVE_IN_PROGRESS;
         this.currentWaveNumber = wave.getWaveNumber();
         party.broadcast(CC.translate(wave.getStartMessage()));
+        wave.getWaveSound().ifPresent(soundInfo -> {
+            try {
+                Sound sound = Sound.valueOf(soundInfo.getName().toUpperCase().replace(".", "_"));
+                party.playSound(sound, soundInfo.getVolume(), soundInfo.getPitch());
+            }catch(IllegalArgumentException e) {
+                plugin.getLogger().warning("Invalid sound name in scenario " + scenario.getScenarioName() + " wave " + this.currentWaveNumber + ": " + soundInfo.getName());
+            }
+        });
         if(this.world == null) {
             party.broadcast(messageManager.getMessage("errors.world-context-not-found"));
             endGame(false);
@@ -191,14 +199,15 @@ public class GameSession {
         Wave next = nextWave.get();
         int cooldown = scenario.getWaveCooldownInSeconds();
         party.broadcast(messageManager.getMessage("wave.cleared", "wave", String.valueOf(this.currentWaveNumber)));
-        party.broadcast(messageManager.getMessage("wave.next-wave-countdown", "count", String.valueOf(cooldown)));
-        this.activeTask = new CountdownHelper(plugin).startCountdown(cooldown, (remaining) -> {
-            String plural = remaining > 1 ? "s" : "";
-            party.broadcast(messageManager.getMessage("wave.countdown-tick", "count", String.valueOf(remaining), "plural_s", plural));
-            party.playSound(Sound.NOTE_BASS, 1f, 1f);
+        if(next.isShowMessages()) party.broadcast(messageManager.getMessage("wave.next-wave-countdown", "count", String.valueOf(cooldown)));
+        this.activeTask = new CountdownHelper(plugin).startCountdown(cooldown, 5, (remaining) -> {
+            if(next.isShowMessages()) {
+                String plural = remaining > 1 ? "s" : "";
+                party.broadcast(messageManager.getMessage("wave.countdown-tick", "count", String.valueOf(remaining), "plural_s", plural));
+                party.playSound(Sound.NOTE_BASS, 1f, 1f);
+            }
         }, () -> {
             startWave(next);
-            party.playSound(Sound.ORB_PICKUP, 1f, 1f);
         });
     }
     private boolean isFinalWave() {
@@ -273,13 +282,17 @@ public class GameSession {
         alivePlayers.remove(player.getUniqueId());
         checkLossCondition();
     }
-    public void onPlayerQuit(Player player) {
+    public void onPlayerQuit(OfflinePlayer player) {
         party.broadcast(messageManager.getMessage("player.disconnected", "player_name", player.getName()));
         Location ogLoc = originalLocation.get(player.getUniqueId());
-        if(ogLoc != null) player.teleport(ogLoc);
+        if(ogLoc != null) {
+            if(player.getPlayer() != null) player.getPlayer().teleport(ogLoc);
+        }
         else {
-            player.performCommand("/warp spawn"); //Send player to spawn in case ogLoc wasn't found
-            plugin.getLogger().info("Sent player " + player.getName() + " back to spawn. (Original location was not found)");
+            if(player.getPlayer() != null) {
+                player.getPlayer().performCommand("/warp spawn"); //Send player to spawn in case ogLoc wasn't found
+                plugin.getLogger().info("Sent player " + player.getName() + " back to spawn. (Original location was not found)");
+            }
         }
         alivePlayers.remove(player.getUniqueId());
         originalLocation.remove(player.getUniqueId());

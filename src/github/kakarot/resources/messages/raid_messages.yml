@@ -29,7 +29,7 @@ wave:
   countdown-tick: "Starting in &b{count}&9 second{plural_s}..."
   first-wave-countdown: "First wave will start in &b{count}&9 seconds."
   next-wave-countdown: "Next wave begins in &b{count}&9 seconds."
-  cleared: "Wave &b{wave}&9 cleared! Preparing for the next wave."
+  cleared: "Wave &b{wave}&9 cleared!"
   all-cleared: "&aAll waves have been cleared!"
   enemies-remaining: "Enemies remaining: &b{count}"
 

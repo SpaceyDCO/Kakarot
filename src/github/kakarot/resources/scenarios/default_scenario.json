@@ -5,6 +5,12 @@
     {
       "waveNumber": 1,
       "startMessage": "&aWave 1 has begun!",
+      "showMessages": true,
+      "startWaveSound": {
+        "name": "orb.pickup",
+        "volume": 1.0,
+        "pitch": 1.2
+      },
       "spawns": [
         {
           "npcID": "Weak_Grunt",
@@ -17,6 +23,12 @@
     {
       "waveNumber": 2,
       "startMessage": "&eWave 2 is here! A stronger foe has appeared!",
+      "showMessages": true,
+      "startWaveSound": {
+        "name": "orb.pickup",
+        "volume": 1.0,
+        "pitch": 1.2
+      },
       "spawns": [
         {
           "npcID": "Weak_Grunt",
@@ -35,6 +47,12 @@
     {
       "waveNumber": 10,
       "startMessage": "&c&lBOSS WAVE! Defeat the Miniboss!",
+      "showMessages": false,
+      "startWaveSound": {
+        "name": "wither.spawn",
+        "volume": 1.0,
+        "pitch": 1.2
+      },
       "spawns": [
         {
           "npcID": "Orc_Miniboss",

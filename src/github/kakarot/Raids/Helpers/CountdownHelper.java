@@ -1,6 +1,7 @@
 package github.kakarot.Raids.Helpers;
 
 import github.kakarot.Main;
+import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -33,6 +34,9 @@ public class CountdownHelper {
     }
 
     public BukkitTask startCountdown(int durationInSeconds, Consumer<Integer> onTick, Runnable onFinish) {
+        return startCountdown(durationInSeconds, durationInSeconds, onTick, onFinish);
+    }
+    public BukkitTask startCountdown(int durationInSeconds, int showMessagesAt, Consumer<Integer> onTick, Runnable onFinish) {
         return new BukkitRunnable() {
             final int[] timeRemaining = {durationInSeconds};
             @Override
@@ -42,7 +46,7 @@ public class CountdownHelper {
                     this.cancel();
                     return;
                 }
-                onTick.accept(timeRemaining[0]);
+                if(showMessagesAt >= timeRemaining[0]) onTick.accept(timeRemaining[0]);
                 timeRemaining[0]--;
             }
         }.runTaskTimer(this.plugin, 0L, 20L);
