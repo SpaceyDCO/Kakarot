@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 public class SpawnInfo {
     /**
-     * An String containing the Npc's ID (From the clone tab)
+     * A String containing the Npc's ID (From the clone tab)
      */
     private String npcID;
     /**
