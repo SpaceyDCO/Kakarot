@@ -15,7 +15,8 @@ import github.kakarot.Raids.Managers.RaidManager;
 import github.kakarot.Tools.ClassesRegistration;
 import github.kakarot.Tools.Commands.CommandFramework;
 import github.kakarot.Tools.MessageManager;
-import github.kakarot.Tools.PacketHandler;
+import github.kakarot.Tools.PacketHandler.IPacketHandler;
+import github.kakarot.Tools.PacketHandler.PacketHandler;
 import github.kakarot.Trivias.TriviaDataHandler;
 import github.kakarot.Trivias.TriviasData;
 import lombok.Getter;
@@ -63,6 +64,8 @@ public class Main extends JavaPlugin {
     private GameListener gameListener;
     //Arenas
 
+    @Getter private IPacketHandler packetHandler;
+
     private final CommandFramework commandFramework = new CommandFramework(this);
     private final ClassesRegistration classesRegistration = new ClassesRegistration();
 
@@ -91,6 +94,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(this.gameListener, this);
         //Arenas
 
+        this.packetHandler = new PacketHandler();
         classesRegistration.loadCommands("github.kakarot.Commands");
         Bukkit.getConsoleSender().sendMessage("Activated plugin Kakarot");
         Bukkit.getConsoleSender().sendMessage("By: SpaceyDCO");
@@ -222,5 +226,4 @@ public class Main extends JavaPlugin {
         this.gameListener.onNpcDamaged(event);
     }
     //RAIDS CNPC EVENTS
-    public PacketHandler getPacketHandler() { return new PacketHandler(); }
 }

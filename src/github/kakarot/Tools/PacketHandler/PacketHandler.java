@@ -1,4 +1,4 @@
-package github.kakarot.Tools;
+package github.kakarot.Tools.PacketHandler;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,18 +12,11 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @NoArgsConstructor
-public final class PacketHandler {
+public final class PacketHandler implements IPacketHandler {
     private static final Map<UUID, Map<Location, BlockState>> playerOriginalBlocks = new ConcurrentHashMap<>();
 
-    /**
-     * Sends a fake block change to a single player.
-     *
-     * @param player The player to send the change to.
-     * @param location The location of the block to change.
-     * @param id The id of the block to place
-     * @param data The data (number after the :) of the block to place
-     */
     @SuppressWarnings("deprecation")
+    @Override
     public void sendBlockChange(Player player, Location location, int id, byte data) {
         // Store the real block state first.
         Material originalType = location.getBlock().getType();
@@ -35,32 +28,20 @@ public final class PacketHandler {
         player.sendBlockChange(location, id, data);
     }
 
-    /**
-     * Overload method to be used with customnpcs scripting
-     * @param ID String with the player's UUID (Usually from getPlayer().getUniqueID())
-     * @param x Coordinates in X dimension
-     * @param y Coordinates in Y dimension
-     * @param z Coordinates in Z dimension
-     * @param blockID The ID of the block to be placed (number)
-     * @param blockData The data of the block to be placed (number after the :)
-     */
+    @Override
     public void sendBlockChange(String ID, double x, double y, double z, int blockID, byte blockData) {
         Player player = Bukkit.getPlayer(UUID.fromString(ID));
         if(player == null) return;
         Location loc = new Location(player.getWorld(), x, y, z);
         sendBlockChange(player, loc, blockID, blockData);
     }
+    @Override
     public void sendBlockChange(String ID, double x, double y, double z, int blockID) {
         sendBlockChange(ID, x, y, z, blockID, (byte) 0);
     }
 
-    /**
-     * Restores a single fake block back to its original state for a player.
-     *
-     * @param player The player to restore the block for.
-     * @param location The location of the block to restore.
-     */
     @SuppressWarnings("deprecation")
+    @Override
     public void restoreBlock(Player player, Location location) {
         Map<Location, BlockState> playerMap = playerOriginalBlocks.get(player.getUniqueId());
         if (playerMap == null) return;
@@ -75,13 +56,7 @@ public final class PacketHandler {
         }
     }
 
-    /**
-     * Overload method to be used with customnpcs scripting
-     * @param playerID String with the player's UUID (Usually from getPlayer().getUniqueID())
-     * @param x Coordinates in X dimension
-     * @param y Coordinates in Y dimension
-     * @param z Coordinates in Z dimension
-     */
+    @Override
     public void restoreBlock(String playerID, double x, double y, double z) {
         Player player = Bukkit.getPlayer(UUID.fromString(playerID));
         if(player == null) return;
@@ -89,12 +64,8 @@ public final class PacketHandler {
         restoreBlock(player, location);
     }
 
-    /**
-     * Restores ALL fake blocks for a player.
-     *
-     * @param player The player whose blocks should be restored.
-     */
     @SuppressWarnings("deprecation")
+    @Override
     public void restoreAllBlocks(Player player) {
         Map<Location, BlockState> playerMap = playerOriginalBlocks.remove(player.getUniqueId());
         if (playerMap == null) return;
@@ -105,10 +76,7 @@ public final class PacketHandler {
         }
     }
 
-    /**
-     * Overload method to be used with customnpcs scripting
-     * @param playerID String with the player's UUID (Usually from getPlayer().getUniqueID())
-     */
+    @Override
     public void restoreAllBlocks(String playerID) {
         Player player = Bukkit.getPlayer(UUID.fromString(playerID));
         if(player == null) return;
