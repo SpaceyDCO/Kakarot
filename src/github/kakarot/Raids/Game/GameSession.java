@@ -341,7 +341,6 @@ public class GameSession {
                     if(playerId == null || !player.isOnline()) continue;
                     IDBCPlayer dbcPlayer = NpcAPI.Instance().getPlayer(player.getName()).getDBCPlayer();
                     IDBCAddon dbcAddon = (IDBCAddon) dbcPlayer;
-                    //Flight check
                     boolean isFlyingEnabled = settings.isFlyEnabled();
                     if(!isFlyingEnabled && dbcAddon.isFlying()) {
                         dbcAddon.setFlight(false);
