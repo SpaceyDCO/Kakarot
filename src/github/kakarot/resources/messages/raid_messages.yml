@@ -23,6 +23,11 @@ game:
   defeat-header: "&4========== DEFEAT =========="
   defeat-body: "&7Your party has been overwhelmed. Get stronger and try again."
   defeat-footer: "&4=================================="
+  # Dragon Block C Specific Messages
+  dbc:
+    flight-disabled: "&cFlight has been disabled for this wave."
+    turbo-disabled: "&cYou cannot use Turbo Mode for this wave."
+    release-limited: "&cYou can't rise your ki any higher."
 
 # --- Wave Progression Messages ---
 wave:

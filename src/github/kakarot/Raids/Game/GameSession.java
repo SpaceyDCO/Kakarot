@@ -6,14 +6,17 @@ import github.kakarot.Raids.Arena;
 import github.kakarot.Raids.Helpers.CountdownHelper;
 import github.kakarot.Raids.Helpers.SerializableLocation;
 import github.kakarot.Raids.Managers.RaidManager;
+import github.kakarot.Raids.Scenario.DBCSettings;
 import github.kakarot.Raids.Scenario.Scenario;
 import github.kakarot.Raids.Scenario.SpawnInfo;
 import github.kakarot.Raids.Scenario.Wave;
 import github.kakarot.Tools.CC;
 import github.kakarot.Tools.MessageManager;
+import kamkeel.npcdbc.api.IDBCAddon;
 import lombok.Getter;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IDBCPlayer;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.scripted.NpcAPI;
@@ -30,7 +33,7 @@ import java.util.*;
 import java.util.logging.Level;
 
 public class GameSession {
-    private MessageManager messageManager;
+    private final MessageManager messageManager;
     @Getter private GameState currentState;
     @Getter private int currentWaveNumber;
     @Getter private final String arenaFileName;
@@ -46,6 +49,7 @@ public class GameSession {
     @Getter private IWorld world;
     private BukkitTask activeTask = null;
     private BukkitTask watchdogTask = null;
+    private BukkitTask dbcSettingsEnforcer = null;
     private final int inactivityCooldownInMinutes = 15;
 
     public GameSession(Main plugin, String arenaFileName, RaidManager raidManager, Party party, Arena arena, Scenario scenario, MessageManager messageManager) {
@@ -179,6 +183,9 @@ public class GameSession {
             }
         }
         this.lastNpcKillTime = System.currentTimeMillis();
+        //Start task to check player's DBC Settings
+        DBCSettings settings = wave.getDBCSettings();
+        startDBCEnforcer(settings);
         if(aliveNpcs.isEmpty()) {
             party.broadcast(messageManager.getMessage("errors.no-enemies-spawned"));
             startWaveCooldown(isFinalWave());
@@ -186,6 +193,10 @@ public class GameSession {
     }
     private void startWaveCooldown(boolean isFinalWave) {
         this.currentState = GameState.WAVE_COOLDOWN;
+        if(this.dbcSettingsEnforcer != null) {
+            this.dbcSettingsEnforcer.cancel();
+            this.dbcSettingsEnforcer = null;
+        }
         if(isFinalWave) {
             endGame(true);
             return;
@@ -226,6 +237,10 @@ public class GameSession {
             party.broadcast(messageManager.getMessage("game.defeat-body"));
             party.broadcast(messageManager.getMessage("game.defeat-footer"));
             party.playSound(Sound.WITHER_DEATH, 1f, 1f);
+        }
+        if(this.dbcSettingsEnforcer != null) {
+            this.dbcSettingsEnforcer.cancel();
+            this.dbcSettingsEnforcer = null;
         }
         if(this.activeTask != null) {
             this.activeTask.cancel();
@@ -316,5 +331,35 @@ public class GameSession {
             party.broadcast(messageManager.getMessage("player.all-defeated"));
             endGame(false);
         }
+    }
+    private void startDBCEnforcer(DBCSettings settings) {
+        this.dbcSettingsEnforcer = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for(UUID playerId : alivePlayers) {
+                    Player player = Bukkit.getPlayer(playerId);
+                    if(playerId == null || !player.isOnline()) continue;
+                    IDBCPlayer dbcPlayer = NpcAPI.Instance().getPlayer(player.getName()).getDBCPlayer();
+                    IDBCAddon dbcAddon = (IDBCAddon) dbcPlayer;
+                    //Flight check
+                    boolean isFlyingEnabled = settings.isFlyEnabled();
+                    if(!isFlyingEnabled && dbcAddon.isFlying()) {
+                        dbcAddon.setFlight(false);
+                        player.sendMessage(messageManager.getMessage("game.dbc.flight-disabled"));
+                    }
+                    boolean isTurboEnabled = settings.isTurboEnabled();
+                    if(!isTurboEnabled && dbcAddon.isTurboOn()) {
+                        dbcAddon.setTurboState(false);
+                        player.sendMessage(messageManager.getMessage("game.dbc.turbo-disabled"));
+                    }
+                    byte maxRelease = settings.getMaxRelease();
+                    byte playerRelease = dbcAddon.getRelease();
+                    if(playerRelease > maxRelease) {
+                        dbcAddon.setRelease(maxRelease);
+                        player.sendMessage(messageManager.getMessage("game.dbc.release-limited"));
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L);
     }
 }
