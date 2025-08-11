@@ -11,6 +11,11 @@
         "volume": 1.0,
         "pitch": 1.2
       },
+      "dbcSettings": {
+        "maxRelease": 125,
+        "flyEnabled": true,
+        "turboEnabled": true
+      },
       "spawns": [
         {
           "npcID": "Weak_Grunt",
@@ -28,6 +33,11 @@
         "name": "orb.pickup",
         "volume": 1.0,
         "pitch": 1.2
+      },
+      "dbcSettings": {
+        "maxRelease": 125,
+        "flyEnabled": false,
+        "turboEnabled": true
       },
       "spawns": [
         {
@@ -52,6 +62,11 @@
         "name": "wither.spawn",
         "volume": 1.0,
         "pitch": 1.2
+      },
+      "dbcSettings": {
+        "maxRelease": 125,
+        "flyEnabled": false,
+        "turboEnabled": false
       },
       "spawns": [
         {

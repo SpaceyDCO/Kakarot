@@ -29,15 +29,22 @@ public class Wave {
      */
     private SoundInfo startWaveSound;
     /**
+     * Defines what DBC Settings this wave has
+     * These include: maximum release, flying allowed, turbo enabled
+     */
+    private DBCSettings dbcSettings;
+    /**
      * A list containing all Spawning information (npc id, coordinates)
      */
     private final List<SpawnInfo> spawns = new ArrayList<>();
-
     /**
      * Gets an optional containing a SoundInfo class
      * @return An optional containing SoundInfo class
      */
     public Optional<SoundInfo> getWaveSound() {
         return Optional.ofNullable(this.startWaveSound);
+    }
+    public DBCSettings getDBCSettings() {
+        return (dbcSettings == null) ? new DBCSettings((byte) 126, true, true) : this.dbcSettings;
     }
 }
