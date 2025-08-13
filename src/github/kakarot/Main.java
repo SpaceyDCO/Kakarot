@@ -222,6 +222,9 @@ public class Main extends JavaPlugin {
     public void onNpcDiedEvent(NpcEvent.DiedEvent event) {
         this.gameListener.onNpcDied(event);
     }
+    public void onNpcDied(ICustomNpc<?> npc) {
+        this.gameListener.npcDied(npc);
+    }
     public void onNpcDamagedEvent(NpcEvent.DamagedEvent event) {
         this.gameListener.onNpcDamaged(event);
     }

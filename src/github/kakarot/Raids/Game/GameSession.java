@@ -290,9 +290,9 @@ public class GameSession {
             player.sendMessage(messageManager.getMessage("system.outsider-damage-blocked"));
         }
     }
-    public void onNpcDied(int npcid) {
+    public void onNpcDied(int npcId) {
         if(this.currentState != GameState.WAVE_IN_PROGRESS) return;
-        aliveNpcs.remove(npcid);
+        aliveNpcs.remove(npcId);
         this.lastNpcKillTime = System.currentTimeMillis();
         if(aliveNpcs.isEmpty()) startWaveCooldown(isFinalWave());
         else party.broadcast(messageManager.getMessage("wave.enemies-remaining", "count", String.valueOf(aliveNpcs.size())));
