@@ -16,6 +16,19 @@
         "flyEnabled": true,
         "turboEnabled": true
       },
+      "rewards": [
+        {
+          "command": "eco give {player} 1000",
+          "repeat": 3,
+          "probability": 100,
+          "uniqueReward": false
+        },
+        {
+          "command": "give {player} diamond 5",
+          "probability": 50,
+          "uniqueReward": true
+        }
+      ],
       "spawns": [
         {
           "npcID": "Weak_Grunt",
