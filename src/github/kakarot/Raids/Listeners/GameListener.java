@@ -80,7 +80,6 @@ public class GameListener implements Listener {
         if(sessionOptional.isPresent()) {
             String command = event.getMessage().toLowerCase().split(" ")[0];
             if(player.isOp()) return;
-            if(!sessionOptional.get().getAlivePlayers().contains(player.getUniqueId())) return;
             if(!allowedCommands.contains(command)) {
                 event.setCancelled(true);
                 player.sendMessage(CC.translate(RaidManager.RAID_PREFIX + " &4You can't use commands while in-game."));
