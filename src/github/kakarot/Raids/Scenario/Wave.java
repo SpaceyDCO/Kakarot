@@ -34,6 +34,10 @@ public class Wave {
      */
     private DBCSettings dbcSettings;
     /**
+     * A list containing all the rewards completing this wave should give
+     */
+    private final List<Reward> rewards = new ArrayList<>();
+    /**
      * A list containing all Spawning information (npc id, coordinates)
      */
     private final List<SpawnInfo> spawns = new ArrayList<>();

@@ -84,7 +84,7 @@ public class RaidManager {
         }
         Optional<Scenario> scenarioOptional = configManager.getScenario(arena.getScenarioName());
         if(!scenarioOptional.isPresent()) {
-            leader.sendMessage(messageManager.getMessage("arena-not-valid", "arena_name", arenaName));
+            leader.sendMessage(messageManager.getMessage("errors.arena-not-valid", "arena_name", arenaName));
             plugin.getLogger().severe("-----------------------");
             plugin.getLogger().severe("FATAL ERROR: Scenario " + arena.getScenarioName() + " from arena " + arenaName + " is missing or corrupt!");
             plugin.getLogger().severe("-----------------------");

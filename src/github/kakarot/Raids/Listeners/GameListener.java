@@ -5,6 +5,7 @@ import github.kakarot.Parties.Events.PlayerLeavePartyEvent;
 import github.kakarot.Raids.Game.GameSession;
 import github.kakarot.Raids.Managers.RaidManager;
 import github.kakarot.Tools.CC;
+import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.scripted.event.NpcEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -49,6 +50,14 @@ public class GameListener implements Listener {
             String arenaName = (String) event.getNpc().getStoredData("SPACEY_ARENA_SYSTEM_NPC");
             Optional<GameSession> session = raidManager.getSessionByArena(arenaName);
             session.ifPresent(gameSession -> gameSession.onNpcDied(npcId));
+        }
+    }
+    public void npcDied(ICustomNpc<?> npc) {
+        if(npc.hasStoredData("SPACEY_ARENA_SYSTEM_NPC")) {
+            int npcId = npc.getEntityId();
+            String arenaName = (String) npc.getStoredData("SPACEY_ARENA_SYSTEM_NPC");
+            Optional<GameSession> session = raidManager.getSessionByArena(arenaName);
+            session.ifPresent(session1 -> session1.onNpcDied(npcId));
         }
     }
 

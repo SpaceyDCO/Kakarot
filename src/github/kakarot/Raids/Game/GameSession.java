@@ -6,10 +6,7 @@ import github.kakarot.Raids.Arena;
 import github.kakarot.Raids.Helpers.CountdownHelper;
 import github.kakarot.Raids.Helpers.SerializableLocation;
 import github.kakarot.Raids.Managers.RaidManager;
-import github.kakarot.Raids.Scenario.DBCSettings;
-import github.kakarot.Raids.Scenario.Scenario;
-import github.kakarot.Raids.Scenario.SpawnInfo;
-import github.kakarot.Raids.Scenario.Wave;
+import github.kakarot.Raids.Scenario.*;
 import github.kakarot.Tools.CC;
 import github.kakarot.Tools.MessageManager;
 import kamkeel.npcdbc.api.IDBCAddon;
@@ -197,6 +194,15 @@ public class GameSession {
             this.dbcSettingsEnforcer.cancel();
             this.dbcSettingsEnforcer = null;
         }
+        Optional<Wave> completedWaveOpt = scenario.getWave(this.currentWaveNumber);
+        if(completedWaveOpt.isPresent() && !completedWaveOpt.get().getRewards().isEmpty()) {
+            for(UUID member : party.getMembers()) {
+                Player player = Bukkit.getPlayer(member);
+                if(player != null && player.isOnline()) {
+                    processRewardsForPlayer(completedWaveOpt.get(), player);
+                }
+            }
+        }
         if(isFinalWave) {
             endGame(true);
             return;
@@ -284,9 +290,9 @@ public class GameSession {
             player.sendMessage(messageManager.getMessage("system.outsider-damage-blocked"));
         }
     }
-    public void onNpcDied(int npcid) {
+    public void onNpcDied(int npcId) {
         if(this.currentState != GameState.WAVE_IN_PROGRESS) return;
-        aliveNpcs.remove(npcid);
+        aliveNpcs.remove(npcId);
         this.lastNpcKillTime = System.currentTimeMillis();
         if(aliveNpcs.isEmpty()) startWaveCooldown(isFinalWave());
         else party.broadcast(messageManager.getMessage("wave.enemies-remaining", "count", String.valueOf(aliveNpcs.size())));
@@ -330,6 +336,33 @@ public class GameSession {
         if(alivePlayers.isEmpty()) {
             party.broadcast(messageManager.getMessage("player.all-defeated"));
             endGame(false);
+        }
+    }
+    private void processRewardsForPlayer(Wave wave, Player player) {
+        List<Reward> uniqueRewards = new ArrayList<>();
+        List<Reward> normalRewards = new ArrayList<>();
+        for(Reward reward : wave.getRewards()) {
+            if(reward.isUniqueReward()) uniqueRewards.add(reward);
+            else normalRewards.add(reward);
+        }
+        uniqueRewards.sort(Comparator.comparingInt(Reward::getProbability));
+        Random random = new Random();
+        for(Reward uniqueReward : uniqueRewards) {
+            if(random.nextInt(100) < uniqueReward.getProbability()) {
+                giveRewardToPlayer(uniqueReward, player);
+                return;
+            }
+        }
+        Collections.shuffle(normalRewards);
+        int playerRoll = random.nextInt(100);
+        for(Reward normalReward : normalRewards) {
+            if(playerRoll < normalReward.getProbability()) giveRewardToPlayer(normalReward, player);
+        }
+    }
+    private void giveRewardToPlayer(Reward reward, Player player) {
+        String command = reward.getCommand().replace("{player}", player.getName());
+        for(int i = 0; i < reward.getRepeat(); i++) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
         }
     }
     private void startDBCEnforcer(DBCSettings settings) {
