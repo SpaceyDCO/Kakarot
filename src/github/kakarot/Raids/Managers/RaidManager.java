@@ -31,6 +31,17 @@ public class RaidManager {
     }
 
     /**
+     * Checks whether a player can enter an arena or not (To be used with CustomNPCs)
+     * @param pUUID The player's UUID
+     * @param arenaName The arena to check join ability
+     * @return False if the arena is in use, or if the player is locked to another instance. True otherwise
+     */
+    public boolean canPlayerEnter(String pUUID, String arenaName) {
+        Player player = Bukkit.getPlayer(UUID.fromString(pUUID));
+        if(activeSessionsByArena.containsKey(arenaName.toLowerCase())) return false;
+        return !activeSessionsByPlayer.containsKey(player.getUniqueId());
+    }
+    /**
      * Overload method to use with CustomNPCs scripting tool
      * @param leaderUUID The UUID of the party leader
      * @param arenaName The arena file name to start (must be lowercase)
@@ -162,6 +173,13 @@ public class RaidManager {
     public Collection<GameSession> getAllActiveSessions() {
         return this.activeSessionsByArena.values();
     }
+
+    /**
+     * Attempts to reload an arena
+     * won't be reloaded if it's being used
+     * @param sender The command sender (for messages)
+     * @param arenaName The arena file to reload
+     */
     public void attemptReloadArena(CommandSender sender, String arenaName) {
         String lowerCaseArenaName = arenaName.toLowerCase();
         if(activeSessionsByArena.containsKey(lowerCaseArenaName)) {
@@ -172,6 +190,13 @@ public class RaidManager {
         if(success) sender.sendMessage("Arena " + arenaName + " loaded successfully.");
         else sender.sendMessage("There was an error loading arena " + arenaName);
     }
+
+    /**
+     * Attempts to reload a scenario
+     * won't be reloaded if it's being used
+     * @param sender The command sender (for messages)
+     * @param scenarioName The scenario file to reload
+     */
     public void attemptReloadScenario(CommandSender sender, String scenarioName) {
         String lowerCaseScenarioName = scenarioName.toLowerCase();
         boolean isScenarioInUse = activeSessionsByArena.values().stream()
