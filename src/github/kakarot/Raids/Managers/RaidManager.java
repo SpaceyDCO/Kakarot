@@ -123,7 +123,7 @@ public class RaidManager {
     public void endGame(GameSession gameSession) {
         plugin.getLogger().info("Ending game in arena " + gameSession.getArenaFileName() + "...");
         activeSessionsByArena.remove(gameSession.getArenaFileName());
-        for(UUID member : gameSession.getParty().getMembers()) {
+        for(UUID member : gameSession.getPlayers()) {
             activeSessionsByPlayer.remove(member);
         }
     }
