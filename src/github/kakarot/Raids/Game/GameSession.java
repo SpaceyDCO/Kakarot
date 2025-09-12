@@ -197,7 +197,7 @@ public class GameSession {
         }
         Optional<Wave> completedWaveOpt = scenario.getWave(this.currentWaveNumber);
         if(completedWaveOpt.isPresent() && !completedWaveOpt.get().getRewards().isEmpty()) {
-            for(UUID member : party.getMembers()) {
+            for(UUID member : alivePlayers) {
                 Player player = Bukkit.getPlayer(member);
                 if(player != null && player.isOnline()) {
                     processRewardsForPlayer(completedWaveOpt.get(), player);
