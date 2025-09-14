@@ -35,6 +35,7 @@ public class GameSession {
     @Getter private int currentWaveNumber;
     @Getter private final String arenaFileName;
     @Getter private final Set<UUID> alivePlayers;
+    @Getter private final Set<UUID> players;
     @Getter private final Set<Integer> aliveNpcs = new HashSet<>();
     @Getter private final Map<UUID, Location> originalLocation = new HashMap<>();
     private long lastNpcKillTime = 0;
@@ -56,7 +57,7 @@ public class GameSession {
         this.party = party;
         this.arena = arena;
         this.scenario = scenario;
-
+        this.players = new HashSet<>(party.getMembers());
         this.alivePlayers = new HashSet<>(party.getMembers());
         this.currentWaveNumber = 0;
         this.currentState = GameState.LOBBY;
@@ -196,7 +197,7 @@ public class GameSession {
         }
         Optional<Wave> completedWaveOpt = scenario.getWave(this.currentWaveNumber);
         if(completedWaveOpt.isPresent() && !completedWaveOpt.get().getRewards().isEmpty()) {
-            for(UUID member : party.getMembers()) {
+            for(UUID member : alivePlayers) {
                 Player player = Bukkit.getPlayer(member);
                 if(player != null && player.isOnline()) {
                     processRewardsForPlayer(completedWaveOpt.get(), player);
