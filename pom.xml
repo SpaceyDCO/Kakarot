@@ -77,7 +77,6 @@
             <version>3.44.0.0</version>
         </dependency>
 
-        <!-- Source: https://mvnrepository.com/artifact/fr.minuskube.inv/smart-invs -->
         <dependency>
             <groupId>fr.minuskube.inv</groupId>
             <artifactId>smart-invs</artifactId>
