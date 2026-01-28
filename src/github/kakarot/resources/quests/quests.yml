@@ -1,0 +1,21 @@
+quests:
+  1:
+    name:
+      es: "Derrota a Freezer"
+      en: "Defeat Frieza"
+    description:
+      es: "¡Freezer está atacando el Planeta Namek!"
+      en: "Frieza is attacking Planet Namek!"
+    objectives:
+      - type: KILL_MOBS
+        target: "Frieza"
+        required: 1
+        shareable: true
+    rewards:
+      - type: COMMAND
+        value: "give {player} diamond 1"
+      - type: XP
+        value: "500"
+    repeatable: true
+    repeatCooldown: 86400000
+    npcId: -1
