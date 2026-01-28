@@ -18,7 +18,7 @@ public class Quest {
     private final List<QuestReward> rewards;
     private final boolean repeatable;
     private final long repeatCooldown;
-    private final int npcId;
+    private final int npcId; //TODO: NPCID CHANGES ON CHUNK RELOAD, MAYBE USE NAMES?
     public String getName(String locale) {
         return this.name.getOrDefault(locale, this.name.getOrDefault("es", "Misión inexistente"));
     }
