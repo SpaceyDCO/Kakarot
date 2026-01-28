@@ -8,6 +8,7 @@ import github.kakarot.Parties.Events.PlayerLeavePartyEvent;
 import github.kakarot.Parties.Listeners.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
+import github.kakarot.Quests.Managers.QuestManager;
 import github.kakarot.Raids.Arena;
 import github.kakarot.Raids.Listeners.GameListener;
 import github.kakarot.Raids.Managers.ConfigManager;
@@ -64,6 +65,10 @@ public class Main extends JavaPlugin {
     private GameListener gameListener;
     //Arenas
 
+    //Quests
+    @Getter private QuestManager questManager;
+    //Quests
+
     @Getter private IPacketHandler packetHandler;
 
     private final CommandFramework commandFramework = new CommandFramework(this);
@@ -93,6 +98,11 @@ public class Main extends JavaPlugin {
         this.gameListener = new GameListener(this, this.raidManager);
         getServer().getPluginManager().registerEvents(this.gameListener, this);
         //Arenas
+
+        //Quests
+        this.questManager = new QuestManager(this);
+        this.questManager.initialize();
+        //Quests
 
         this.packetHandler = new PacketHandler();
         classesRegistration.loadCommands("github.kakarot.Commands");
