@@ -8,6 +8,10 @@ import github.kakarot.Parties.Events.PlayerLeavePartyEvent;
 import github.kakarot.Parties.Listeners.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
+import github.kakarot.Quests.Commands.QuestCommands;
+import github.kakarot.Quests.Listeners.QuestsListeners;
+import github.kakarot.Quests.Managers.PlayerProgressManager;
+import github.kakarot.Quests.Managers.QuestDBConfig;
 import github.kakarot.Quests.Managers.QuestManager;
 import github.kakarot.Raids.Arena;
 import github.kakarot.Raids.Listeners.GameListener;
@@ -32,6 +36,7 @@ import org.bukkit.World;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -67,6 +72,8 @@ public class Main extends JavaPlugin {
 
     //Quests
     @Getter private QuestManager questManager;
+    @Getter private PlayerProgressManager progressManager;
+    private QuestsListeners questsListeners;
     //Quests
 
     @Getter private IPacketHandler packetHandler;
@@ -102,6 +109,11 @@ public class Main extends JavaPlugin {
         //Quests
         this.questManager = new QuestManager(this);
         this.questManager.initialize();
+        this.questsListeners = new QuestsListeners(this);
+        this.progressManager = new PlayerProgressManager(this);
+        getServer().getPluginManager().registerEvents(this.questsListeners, this);
+        //QuestDBConfig.initialize(this);
+        getCommand("quest").setExecutor(new QuestCommands());
         //Quests
 
         this.packetHandler = new PacketHandler();
@@ -128,6 +140,12 @@ public class Main extends JavaPlugin {
         PlayerLeavePartyEvent.getHandlerList().unregister(this.gameListener);
         this.raidManager.cleanupArenas();
         //Arenas
+
+        //Quests
+        PlayerJoinEvent.getHandlerList().unregister(this.questsListeners);
+        PlayerQuitEvent.getHandlerList().unregister(this.questsListeners);
+        QuestDBConfig.closeConnection();
+        //Quests
     }
 
     //TRIVIA
