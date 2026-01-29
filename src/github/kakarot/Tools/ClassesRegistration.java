@@ -31,8 +31,8 @@ public class ClassesRegistration {
             try {
                 clazz.newInstance();
             } catch (Exception exception) {
-                //exception.printStackTrace();
                 System.out.println("No se pudo cargar " + clazz);
+                exception.printStackTrace();
             }
         }
     }
