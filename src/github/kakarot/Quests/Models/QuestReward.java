@@ -8,7 +8,7 @@ import java.util.Map;
 public class QuestReward {
     private final RewardType type;
     private final String value;
-    private final Map<String, String> descriptions; //TODO: refactor code to use new configurable reward messages
+    private final Map<String, String> descriptions;
     public QuestReward(RewardType type, String value, Map<String, String> descriptions) {
         this.type = type;
         this.value = value;
