@@ -16,6 +16,7 @@ public class Quest {
     private final Map<String, String> description;
     private final List<QuestObjective> objectives;
     private final List<QuestReward> rewards;
+    private final Map<String, String> completionMessage;
     private final boolean repeatable;
     private final long repeatCooldown;
     private final int npcId; //TODO: NPCID CHANGES ON CHUNK RELOAD, MAYBE USE NAMES?
