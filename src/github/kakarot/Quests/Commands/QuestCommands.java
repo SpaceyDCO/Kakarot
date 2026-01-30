@@ -167,7 +167,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             boolean complete = obj.isComplete(currentProgress);
             String checkmark = complete ? "§a✓" : "§7○";
             String progressText = "§7(" + currentProgress + "/" + obj.getRequired() + ")";
-            player.sendMessage(checkmark + " §f" + obj.getTarget() + " " + progressText);
+            player.sendMessage(checkmark + " §f" + obj.getObjectiveInfo().getTarget() + " " + progressText);
             player.sendMessage("");
             player.sendMessage("§a§lRewards:");
             for(QuestReward questReward : quest.getRewards()) {
