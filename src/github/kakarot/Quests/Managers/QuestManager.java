@@ -97,7 +97,7 @@ public class QuestManager {
             List<QuestObjective> objectives = new ArrayList<>();
             List<Map<?, ?>> objectivesList = questSection.getMapList("objectives");
             for(Map<?, ?> objMap : objectivesList) {
-                QuestObjective obj = parseObjective(objMap);
+                QuestObjective obj = parseObjective(objMap, questId);
                 if(obj != null) objectives.add(obj);
             }
             List<QuestReward> rewards = new ArrayList<>();
@@ -115,7 +115,6 @@ public class QuestManager {
             }
             boolean repeatable = questSection.getBoolean("repeatable", false);
             long repeatCooldown = questSection.getLong("repeatCooldown", 86400000);
-            int npcId = questSection.getInt("npcId", -1);
             Quest quest = new Quest(
                     questId,
                     names,
@@ -124,8 +123,7 @@ public class QuestManager {
                     rewards,
                     completionMessages,
                     repeatable,
-                    repeatCooldown,
-                    npcId
+                    repeatCooldown
             );
             plugin.getLogger().info("Loaded quest #" + questId + ": "
             + names.getOrDefault("es", "?"));
@@ -139,10 +137,21 @@ public class QuestManager {
     /**
      * Parses a single objective
      */
-    private QuestObjective parseObjective(Map<?, ?> map) {
+    private QuestObjective parseObjective(Map<?, ?> map, int questId) {
         try {
             String typeStr = (String) map.get("type");
-            String target = (String) map.get("target");
+            String target = "";
+            String title = "";
+            Object objInfo = map.get("objectiveInfo");
+            if(objInfo instanceof Map<?, ?>) {
+                Map<?, ?> objMap = (Map<?, ?>) objInfo;
+                if(objMap.get("target") == null) {
+                    plugin.getLogger().warning("No objective target set for quest #" + questId);
+                    return null;
+                }
+                target = (String) objMap.get("target");
+                title = objMap.get("title") != null && !((String) objMap.get("title")).isEmpty() ? (String) objMap.get("title") : "";
+            }
             int required;
             if(map.get("required") != null) required = ((Number) map.get("required")).intValue();
             else required = 1;
@@ -150,7 +159,8 @@ public class QuestManager {
             if(map.get("shareable") != null) shareable = (Boolean) map.get("shareable");
             else shareable = false;
             ObjectiveType type = ObjectiveType.valueOf(typeStr.toUpperCase());
-            return new QuestObjective(type, target, required, shareable);
+            ObjectiveInfo info = new ObjectiveInfo(target, title);
+            return new QuestObjective(type, info, required, shareable);
         }catch(Exception e) {
             plugin.getLogger().log(Level.WARNING, "Error parsing objective: " + e);
             return null;
@@ -255,7 +265,7 @@ public class QuestManager {
                   Player player = Bukkit.getPlayer(playerUUID);
                   if(player != null && player.isOnline()) {
                       int percentage = objective.getProgressCompletedAsPercentage(newProgress);
-                      player.sendMessage("§7[Quest] &f" + objective.getTarget() + " §7(" + percentage + "%)"); //TODO: multiple languages support
+                      player.sendMessage("§7[Quest] &f" + objective.getObjectiveInfo().getTarget() + " §7(" + percentage + "%)"); //TODO: multiple languages support
                   }
                });
            }
