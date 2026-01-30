@@ -36,9 +36,6 @@ public class PlayerProgressManager {
      * @param playerUUID The player's uuid whose progress will be "moved" to database
      */
     public void savePlayerProgress(UUID playerUUID) {
-        this.playerProgressMap.computeIfPresent(playerUUID, (key, oldValue) -> {
-            plugin.getLogger().info("Cleared progress for player " + Bukkit.getPlayer(playerUUID).getName() + "\n" + oldValue.size() + " quests removed from cache.");
-            return this.playerProgressMap.remove(key);
-        });
+        this.playerProgressMap.remove(playerUUID);
     }
 }
