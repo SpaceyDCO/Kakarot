@@ -27,6 +27,7 @@ import github.kakarot.Trivias.TriviasData;
 import lombok.Getter;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.ICloneHandler;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.NpcEvent;
@@ -249,6 +250,7 @@ public class Main extends JavaPlugin {
     //RAIDS CNPC EVENTS
     public void onNpcDiedEvent(NpcEvent.DiedEvent event) {
         this.gameListener.onNpcDied(event);
+        this.questsListeners.onNpcDied(event.getNpc(), event.getDamageSource().getTrueSource());
     }
     public void onNpcDied(ICustomNpc<?> npc) {
         this.gameListener.npcDied(npc);
