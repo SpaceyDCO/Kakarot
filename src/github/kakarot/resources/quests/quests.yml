@@ -8,7 +8,9 @@ quests:
       en: "Frieza is attacking Planet Namek!"
     objectives:
       - type: KILL_MOBS
-        target: "Frieza"
+        objectiveInfo:
+          target: "Frieza"
+          title: "Boss"
         required: 1
         shareable: true
     rewards:
@@ -17,11 +19,10 @@ quests:
          descriptions:
            es: "Comando"
            en: "Command"
-      -  type: XP
-         value: "500"
+      -  type: COMMAND
+         value: "xp {player} 500"
     completionMessage:
       es: "Felicidades"
       en: "Congratulations"
     repeatable: true
     repeatCooldown: 86400000
-    npcId: -1
