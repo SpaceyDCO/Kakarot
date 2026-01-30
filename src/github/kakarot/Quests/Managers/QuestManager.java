@@ -3,6 +3,7 @@ package github.kakarot.Quests.Managers;
 import github.kakarot.Main;
 import github.kakarot.Quests.Models.*;
 import github.kakarot.Quests.Quest;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
@@ -22,6 +23,7 @@ public class QuestManager {
     private final Map<Integer, Quest> quests = new HashMap<>();
     //Key: playerUUID, Value: map of questId -> progress ; useful for checking player progress quickly
     private final Map<String, Map<Integer, PlayerQuestProgress>> playerProgress = new HashMap<>();
+    public final Map<String, List<QuestObjectiveReference>> npcKillObjectives = new HashMap<>();
     public QuestManager(Main plugin) {
         this.plugin = plugin;
     }
@@ -64,7 +66,10 @@ public class QuestManager {
                     ConfigurationSection questSection = questsSection.getConfigurationSection(questIdStr);
                     if(questSection == null) continue;
                     Quest quest = loadQuestFromYAML(questId, questSection);
-                    if(quest != null) quests.put(questId, quest);
+                    if(quest != null) {
+                        quests.put(questId, quest);
+                        buildReverseIndex();
+                    }
                 }catch(NumberFormatException e) {
                     plugin.getLogger().warning("Invalid quest ID: " + questIdStr);
                 }
@@ -205,6 +210,17 @@ public class QuestManager {
     public Map<Integer, Quest> getAllQuests() {
         return new HashMap<>(this.quests);
     }
+    private void buildReverseIndex() {
+        npcKillObjectives.clear();
+        for(Quest quest : quests.values()) {
+            for(int i = 0; i < quest.getObjectiveCount(); i++) {
+                QuestObjective obj = quest.getObjectives().get(i);
+                if(obj.getType() == ObjectiveType.KILL_MOBS) {
+                    npcKillObjectives.computeIfAbsent(obj.getObjectiveInfo().getTarget(), k -> new ArrayList<>()).add(new QuestObjectiveReference(quest.getId(), i, obj.getObjectiveInfo().getTitle()));
+                }
+            }
+        }
+    }
     public void addQuestToPlayer(UUID playerUUID, int questId) {
         Quest quest = getQuest(questId);
         if(quest == null) {
@@ -223,7 +239,7 @@ public class QuestManager {
            playerProgress.get(playerUUID.toString()).put(questId, progress);
            plugin.getServer().getScheduler().runTask(plugin, () -> {
                Player player = Bukkit.getPlayer(playerUUID);
-               if(player != null && player.isOnline()) player.sendMessage("§aMisión aceptada: &f" + quest.getName("es")); //Change to support multiple languages
+               if(player != null && player.isOnline()) player.sendMessage("§aMisión aceptada: §f" + quest.getName("es")); //TODO: Change to support multiple languages
            });
         });
     }
@@ -251,13 +267,14 @@ public class QuestManager {
         if(quest == null) return;
         PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
         if(progress == null) return;
+        if(hasCompletedQuest(playerUUID, questId)) return; //Quest already completed
         if(objectiveIndex >= quest.getObjectiveCount()) return;
         QuestObjective objective = quest.getObjectives().get(objectiveIndex);
         int currentProgress = progress.getObjectiveProgress()[objectiveIndex];
         int newProgress = Math.min(currentProgress + amount, objective.getRequired());
         progress.getObjectiveProgress()[objectiveIndex] = newProgress;
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-           QuestDB.updateObjectiveProgress(playerUUID, questId, objectiveIndex, newProgress);
+           //QuestDB.updateObjectiveProgress(playerUUID, questId, objectiveIndex, newProgress); TODO: database call
            if(quest.areAllObjectivesCompletes(progress.getObjectiveProgress())) {
                completeQuestAsync(playerUUID, questId);
            }else {
@@ -285,6 +302,7 @@ public class QuestManager {
         if(quest == null) return;
         PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
         if(progress == null)  return;
+        if(hasCompletedQuest(playerUUID, questId)) return; //Quest already completed
 //        QuestDB.completeQuest(playerUUID, questId, quest.getRepeatCooldown());
         progress.markCompleted(quest);
 //        if(QuestDB.getTrackedQuest(playerUUID) == questId) QuestDB.setTrackedQuest(playerUUID, -1);
@@ -328,6 +346,17 @@ public class QuestManager {
             }catch(Exception e) {
                 plugin.getLogger().log(Level.SEVERE, "Error while trying to give reward type " + reward.getType() + " value " + reward.getValue() + " to player " + playerName, e);
             }
+        }
+    }
+    @Getter
+    public static class QuestObjectiveReference {
+        final int questId;
+        final int objectiveIndex;
+        final String title;
+        QuestObjectiveReference(int questId, int objectiveIndex, String title) {
+            this.questId = questId;
+            this.objectiveIndex = objectiveIndex;
+            this.title = title;
         }
     }
 }
