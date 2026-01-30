@@ -1,6 +1,8 @@
 package github.kakarot.Quests.Commands;
 
+import fr.minuskube.inv.SmartInvsPlugin;
 import github.kakarot.Main;
+import github.kakarot.Quests.GUI.QuestListGUI;
 import github.kakarot.Quests.Managers.QuestManager;
 import github.kakarot.Quests.Models.PlayerQuestProgress;
 import github.kakarot.Quests.Models.QuestObjective;
@@ -94,6 +96,10 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         return true;
     }
     private void showQuestList(Player player) {
+        QuestListGUI.INVENTORY.open(player);
+        player.sendMessage("§aOpening up quests GUI...");
+    }
+    private void showQuestListText(Player player) {
         QuestManager questManager = Main.instance.getQuestManager();
         Map<Integer, PlayerQuestProgress> playerQuests = questManager.getPlayerQuests(player.getUniqueId());
         if(playerQuests.isEmpty()) {
