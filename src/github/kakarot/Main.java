@@ -37,10 +37,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -148,6 +145,7 @@ public class Main extends JavaPlugin {
         PlayerJoinEvent.getHandlerList().unregister(this.questsListeners);
         PlayerQuitEvent.getHandlerList().unregister(this.questsListeners);
         InventoryClickEvent.getHandlerList().unregister(this.questsListeners);
+        PlayerPickupItemEvent.getHandlerList().unregister(this.questsListeners);
         QuestDBConfig.closeConnection();
         //Quests
     }
