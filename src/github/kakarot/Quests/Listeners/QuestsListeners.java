@@ -19,6 +19,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.ArrayList;
@@ -45,30 +46,16 @@ public class QuestsListeners implements Listener {
         progressManager.savePlayerProgress(player.getUniqueId());
     }
     @EventHandler
+    public void onItemPickup(PlayerPickupItemEvent event) {
+        Player player = event.getPlayer();
+        checkCollectItemsObjectives(player);
+    }
+    @EventHandler
     public void onInventoryChange(InventoryClickEvent event) {
         if(!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
-        UUID playerUUID = player.getUniqueId();
-        Map<Integer, PlayerQuestProgress> progress = plugin.getQuestManager().getPlayerQuests(playerUUID);
-        if(progress == null || progress.isEmpty()) return;
-        for(Map.Entry<Integer, PlayerQuestProgress> progressEntry : progress.entrySet()) {
-            int questId = progressEntry.getKey();
-            PlayerQuestProgress playerQuestProgress = progressEntry.getValue();
-            if(playerQuestProgress.getStatus() != QuestStatus.IN_PROGRESS) continue;
-            Quest quest = plugin.getQuestManager().getQuest(questId);
-            if(quest == null) continue;
-            for(int i = 0; i < quest.getObjectiveCount(); i++) {
-                QuestObjective objective = quest.getObjectives().get(i);
-                if(objective.getType() != ObjectiveType.COLLECT_ITEMS) continue;
-                if(plugin.getQuestManager().hasCompletedObjective(playerUUID, questId, i)) continue;
-                int finalI = i;
-                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                    if(plugin.getProgressManager().playerHasRequiredItem(player, objective)) {
-                        plugin.getQuestManager().progressObjective(playerUUID, questId, finalI, player.getLocation(), objective.getRequired());
-                    }
-                }, 1L);
-            }
-        }
+        if(event.getCurrentItem() == null && event.getCursor() == null) return;
+        checkCollectItemsObjectives(player);
     }
     public void onNpcDied(ICustomNpc<?> npc, IEntity<?> killer) {
         if(npc == null || killer == null) {
@@ -112,6 +99,29 @@ public class QuestsListeners implements Listener {
                     return;
                 }
                 plugin.getQuestManager().progressObjective(playerUUID, reference.getQuestId(), reference.getObjectiveIndex(), completionLoc, amount);
+            }
+        }
+    }
+    private void checkCollectItemsObjectives(Player player) {
+        UUID playerUUID = player.getUniqueId();
+        Map<Integer, PlayerQuestProgress> progress = plugin.getQuestManager().getPlayerQuests(playerUUID);
+        if(progress == null || progress.isEmpty()) return;
+        for(Map.Entry<Integer, PlayerQuestProgress> progressEntry : progress.entrySet()) {
+            int questId = progressEntry.getKey();
+            PlayerQuestProgress playerQuestProgress = progressEntry.getValue();
+            if(playerQuestProgress.getStatus() != QuestStatus.IN_PROGRESS) continue;
+            Quest quest = plugin.getQuestManager().getQuest(questId);
+            if(quest == null) continue;
+            for(int i = 0; i < quest.getObjectiveCount(); i++) {
+                QuestObjective objective = quest.getObjectives().get(i);
+                if(objective.getType() != ObjectiveType.COLLECT_ITEMS) continue;
+                if(plugin.getQuestManager().hasCompletedObjective(playerUUID, questId, i)) continue; //TODO: add hasCompletedQuest check maybe?
+                int finalI = i;
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                    if(plugin.getProgressManager().playerHasRequiredItem(player, objective)) {
+                        plugin.getQuestManager().progressObjective(playerUUID, questId, finalI, player.getLocation(), objective.getRequired());
+                    }
+                }, 1L);
             }
         }
     }
