@@ -36,6 +36,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -146,6 +147,7 @@ public class Main extends JavaPlugin {
         //Quests
         PlayerJoinEvent.getHandlerList().unregister(this.questsListeners);
         PlayerQuitEvent.getHandlerList().unregister(this.questsListeners);
+        InventoryClickEvent.getHandlerList().unregister(this.questsListeners);
         QuestDBConfig.closeConnection();
         //Quests
     }
