@@ -8,11 +8,11 @@ import java.util.Map;
 public class QuestReward {
     private final RewardType type;
     private final String value;
-    private final Map<String, String> descriptions;
+    private final Map<String, String> description;
     public QuestReward(RewardType type, String value, Map<String, String> descriptions) {
         this.type = type;
         this.value = value;
-        this.descriptions = descriptions;
+        this.description = descriptions;
     }
     public String getResolvedValue(String playerName) {
         return this.value.replace("{player}", playerName);
