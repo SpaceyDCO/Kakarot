@@ -63,7 +63,7 @@ public class QuestsListeners implements Listener {
     /**
      * Using reverse index, checks if the given NPC is linked to a quest, then progresses the player by amount
      * @param references The list of QuestObjectiveReference to do the reverse index search in
-     * @param player The player doing the action (killing or interacting with an npc)
+     * @param player The player doing the action (killing or interacting with a npc)
      * @param npc The npc being actioned on
      * @param amount The amount of objective value to progress
      */
