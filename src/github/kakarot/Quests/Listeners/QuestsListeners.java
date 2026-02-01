@@ -76,6 +76,7 @@ public class QuestsListeners implements Listener {
         Player player = Bukkit.getPlayer(UUID.fromString(iPlayer.getUniqueID()));
         List<QuestManager.QuestObjectiveReference> references = plugin.getQuestManager().npcObjectives.getOrDefault(npc.getName(), new ArrayList<>());
         checkReferenceAndProgressObjective(references, player, npc, ObjectiveType.TALK_TO_NPC, 1);
+        checkTurnInReferences(plugin.getQuestManager().npcsTurnIn.getOrDefault(npc.getName(), new ArrayList<>()), player, npc);
     }
 
     /**
@@ -100,6 +101,21 @@ public class QuestsListeners implements Listener {
                 }
                 plugin.getQuestManager().progressObjective(playerUUID, reference.getQuestId(), reference.getObjectiveIndex(), completionLoc, amount);
             }
+        }
+    }
+    private void checkTurnInReferences(List<QuestManager.QuestTurnInReference> references, Player player, ICustomNpc<?> npc) {
+        if(references.isEmpty()) return;
+        UUID playerUUID = player.getUniqueId();
+        String npcTitle = npc.getTitle();
+        for(QuestManager.QuestTurnInReference reference : references) {
+            if(!npcTitle.equals(reference.getTitle())) continue;
+            if(plugin.getQuestManager().hasCompletedQuest(playerUUID, reference.getQuestId())) continue;
+            if(!plugin.getQuestManager().hasPickedUpQuest(playerUUID, reference.getQuestId())) continue;
+            PlayerQuestProgress progress = plugin.getQuestManager().getPlayerQuestProgress(playerUUID, reference.getQuestId());
+            int totalProgress = progress.getTotalProgressPercentage(plugin.getQuestManager().getQuest(reference.getQuestId()));
+            if(totalProgress < 100) continue;
+            //Player has passed the checks, give reward
+            if(plugin.getQuestManager().hasRequiredItems(player, reference.getQuestId())) plugin.getQuestManager().completeQuest(playerUUID, reference.getQuestId());
         }
     }
     private void checkCollectItemsObjectives(Player player) {
