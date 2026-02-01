@@ -284,7 +284,11 @@ public class QuestManager {
                     Player partyPlayer = Bukkit.getPlayer(member);
                     if(partyPlayer == null || !partyPlayer.isOnline()) continue;
                     //Progress objective for player IF he is within 75 blocks from the objective completion location
-                    if(hasPickedUpQuest(member, questId) && isPlayerWithinObjectiveRange(player.getLocation(), completionLoc, 75)) progressObjectiveForPlayer(progress, objective, quest, member, questId, objectiveIndex, amount);
+                    if(hasPickedUpQuest(member, questId) && isPlayerWithinObjectiveRange(partyPlayer.getLocation(), completionLoc, 75)) {
+                        PlayerQuestProgress partyPlayerProgress = getPlayerQuestProgress(member, questId);
+                        if(partyPlayerProgress == null) continue;
+                        progressObjectiveForPlayer(partyPlayerProgress, objective, quest, member, questId, objectiveIndex, amount);
+                    }
                 }
                 return;
             }
