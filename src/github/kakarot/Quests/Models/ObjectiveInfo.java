@@ -9,13 +9,12 @@ import net.minecraft.nbt.NBTTagCompound;
 public class ObjectiveInfo {
     private final String target;
     private String title;
-    private String nbt;
     private NBTTagCompound parsedNbt;
     public ObjectiveInfo(String target, String title, String nbt) throws NBTException {
         this.target = target;
         this.title = title;
-        this.nbt = nbt;
         if(nbt != null && !nbt.isEmpty()) this.parsedNbt = (NBTTagCompound) JsonToNBT.func_150315_a(nbt);
+        else this.parsedNbt = null;
     }
     public ObjectiveInfo(String target) {
         this.target = target;
@@ -33,6 +32,6 @@ public class ObjectiveInfo {
         return Byte.parseByte(target.split(":")[1]);
     }
     public boolean hasNbt() {
-        return nbt != null && !nbt.isEmpty();
+        return this.parsedNbt != null;
     }
 }
