@@ -28,6 +28,7 @@ import lombok.Getter;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.handler.ICloneHandler;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.NpcEvent;
@@ -257,6 +258,10 @@ public class Main extends JavaPlugin {
     }
     public void onNpcDamagedEvent(NpcEvent.DamagedEvent event) {
         this.gameListener.onNpcDamaged(event);
+    }
+    public void onPlayerNpcInteractEvent(IPlayerEvent.InteractEvent event) {
+        if(!(event.getTarget() instanceof ICustomNpc)) return;
+        this.questsListeners.onPlayerNpcInteract((ICustomNpc<?>) event.getTarget(), event.getPlayer());
     }
     //RAIDS CNPC EVENTS
 }
