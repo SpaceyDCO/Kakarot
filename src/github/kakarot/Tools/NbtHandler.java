@@ -63,7 +63,15 @@ public class NbtHandler {
     }
     public void changeDamage(int damage) {
         ensureCompound();
-        NBTTagList modifiers = new NBTTagList();
+        NBTTagList modifiers;
+        if(this.compound.hasKey("AttributeModifiers")) {
+            modifiers = this.compound.getTagList("AttributeModifiers", 10);
+            for(int i = modifiers.tagCount() - 1; i >= 0; i--) {
+                NBTTagCompound tag = modifiers.getCompoundTagAt(i);
+                if(tag.getString("AttributeName").equals("generic.attackDamage")) modifiers.removeTag(i);
+            }
+        }
+        else modifiers = new NBTTagList();
         NBTTagCompound damageTag = new NBTTagCompound();
         damageTag.setString("AttributeName", "generic.attackDamage");
         damageTag.setString("Name", "generic.attackDamage");
