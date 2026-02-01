@@ -1,0 +1,46 @@
+{
+  "id": 1,
+  "name": {
+    "en": "Defeat Frieza",
+    "es": "Derrota a Freezer"
+  },
+  "description": {
+    "en": "Frieza has arrived on Earth! Defeat his Golden Form to save the planet!",
+    "es": "¡Freezer ha llegado a la Tierra! ¡Derrota su forma dorada para salvar el planeta!"
+  },
+  "objectives": [
+    {
+      "type": "KILL_MOBS",
+      "objectiveInfo": {
+        "target": "Frieza",
+        "title": "Golden Form"
+      },
+      "required": 1,
+      "shareable": true
+    }
+  ],
+  "rewards": [
+    {
+      "type": "COMMAND",
+      "value": "give {player} diamond 64",
+      "description": {
+        "en": "64 Diamonds",
+        "es": "64 Diamantes"
+      }
+    },
+    {
+      "type": "COMMAND",
+      "value": "xp add {player} 100 levels",
+      "description": {
+        "en": "100 XP Levels",
+        "es": "100 Niveles de XP"
+      }
+    }
+  ],
+  "completionMessages": {
+    "en": "You defeated Frieza! Earth is saved!",
+    "es": "¡Has derrotado a Freezer! ¡La Tierra está a salvo!"
+  },
+  "repeatable": false,
+  "repeatCooldown": 0
+}
