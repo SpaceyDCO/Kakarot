@@ -4,6 +4,10 @@ import github.kakarot.Main;
 import github.kakarot.Quests.Managers.PlayerProgressManager;
 import github.kakarot.Quests.Managers.QuestManager;
 import github.kakarot.Quests.Models.ObjectiveType;
+import github.kakarot.Quests.Models.PlayerQuestProgress;
+import github.kakarot.Quests.Models.QuestObjective;
+import github.kakarot.Quests.Models.QuestStatus;
+import github.kakarot.Quests.Quest;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
@@ -13,11 +17,13 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class QuestsListeners implements Listener {
@@ -38,7 +44,32 @@ public class QuestsListeners implements Listener {
         if(player == null) return;
         progressManager.savePlayerProgress(player.getUniqueId());
     }
-
+    @EventHandler
+    public void onInventoryChange(InventoryClickEvent event) {
+        if(!(event.getWhoClicked() instanceof Player)) return;
+        Player player = (Player) event.getWhoClicked();
+        UUID playerUUID = player.getUniqueId();
+        Map<Integer, PlayerQuestProgress> progress = plugin.getQuestManager().getPlayerQuests(playerUUID);
+        if(progress == null || progress.isEmpty()) return;
+        for(Map.Entry<Integer, PlayerQuestProgress> progressEntry : progress.entrySet()) {
+            int questId = progressEntry.getKey();
+            PlayerQuestProgress playerQuestProgress = progressEntry.getValue();
+            if(playerQuestProgress.getStatus() != QuestStatus.IN_PROGRESS) continue;
+            Quest quest = plugin.getQuestManager().getQuest(questId);
+            if(quest == null) continue;
+            for(int i = 0; i < quest.getObjectiveCount(); i++) {
+                QuestObjective objective = quest.getObjectives().get(i);
+                if(objective.getType() != ObjectiveType.COLLECT_ITEMS) continue;
+                if(plugin.getQuestManager().hasCompletedObjective(playerUUID, questId, i)) continue;
+                int finalI = i;
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                    if(plugin.getProgressManager().playerHasRequiredItem(player, objective)) {
+                        plugin.getQuestManager().progressObjective(playerUUID, questId, finalI, player.getLocation(), objective.getRequired());
+                    }
+                }, 1L);
+            }
+        }
+    }
     public void onNpcDied(ICustomNpc<?> npc, IEntity<?> killer) {
         if(npc == null || killer == null) {
             plugin.getLogger().warning("Critical ERROR: NPC or Player killer with null value");
