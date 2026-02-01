@@ -9,9 +9,6 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -29,6 +26,8 @@ public class QuestManager {
     //Key: playerUUID, Value: map of questId -> progress ; useful for checking player progress quickly
     private final Map<String, Map<Integer, PlayerQuestProgress>> playerProgress = new HashMap<>();
     public final Map<String, List<QuestObjectiveReference>> npcObjectives = new HashMap<>();
+    //TODO: Collect Item objective, then "Autocomplete" feature, finally finish the DATABASE.
+    // After those, Quest tracking and Quest GUI for admins
     public QuestManager(Main plugin) {
         this.plugin = plugin;
     }
