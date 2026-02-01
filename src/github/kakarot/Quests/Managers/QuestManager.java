@@ -23,7 +23,7 @@ public class QuestManager {
     private final Map<Integer, Quest> quests = new HashMap<>();
     //Key: playerUUID, Value: map of questId -> progress ; useful for checking player progress quickly
     private final Map<String, Map<Integer, PlayerQuestProgress>> playerProgress = new HashMap<>();
-    public final Map<String, List<QuestObjectiveReference>> npcKillObjectives = new HashMap<>();
+    public final Map<String, List<QuestObjectiveReference>> npcObjectives = new HashMap<>();
     public QuestManager(Main plugin) {
         this.plugin = plugin;
     }
@@ -211,12 +211,12 @@ public class QuestManager {
         return new HashMap<>(this.quests);
     }
     private void buildReverseIndex() {
-        npcKillObjectives.clear();
+        npcObjectives.clear();
         for(Quest quest : quests.values()) {
             for(int i = 0; i < quest.getObjectiveCount(); i++) {
                 QuestObjective obj = quest.getObjectives().get(i);
-                if(obj.getType() == ObjectiveType.KILL_MOBS) {
-                    npcKillObjectives.computeIfAbsent(obj.getObjectiveInfo().getTarget(), k -> new ArrayList<>()).add(new QuestObjectiveReference(quest.getId(), i, obj.getObjectiveInfo().getTitle()));
+                if(obj.getType() == ObjectiveType.KILL_MOBS || obj.getType() == ObjectiveType.TALK_TO_NPC) {
+                    npcObjectives.computeIfAbsent(obj.getObjectiveInfo().getTarget(), k -> new ArrayList<>()).add(new QuestObjectiveReference(quest.getId(), i, obj.getObjectiveInfo().getTitle(), obj.getType()));
                 }
             }
         }
@@ -261,13 +261,21 @@ public class QuestManager {
         if(progress == null) return false;
         return progress.getStatus() == QuestStatus.COMPLETED;
     }
+    public boolean hasCompletedObjective(UUID playerUUID, int questId, int objectiveIndex) {
+        Quest quest = getQuest(questId);
+        if(quest == null) return false;
+        PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
+        if(progress == null) return false;
+        QuestObjective objective = quest.getObjectives().get(objectiveIndex);
+        return progress.hasCompletedObjective(objectiveIndex, objective.getRequired());
+    }
     //Can be called async
     public void progressObjective(UUID playerUUID, int questId, int objectiveIndex, int amount) {
         Quest quest = getQuest(questId);
         if(quest == null) return;
         PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
         if(progress == null) return;
-        if(hasCompletedQuest(playerUUID, questId)) return; //Quest already completed
+        if(hasCompletedQuest(playerUUID, questId) || hasCompletedObjective(playerUUID, questId, objectiveIndex)) return; //Quest or objective already completed
         if(objectiveIndex >= quest.getObjectiveCount()) return;
         QuestObjective objective = quest.getObjectives().get(objectiveIndex);
         int currentProgress = progress.getObjectiveProgress()[objectiveIndex];
@@ -282,7 +290,7 @@ public class QuestManager {
                   Player player = Bukkit.getPlayer(playerUUID);
                   if(player != null && player.isOnline()) {
                       int percentage = objective.getProgressCompletedAsPercentage(newProgress);
-                      player.sendMessage("§7[Quest] &f" + objective.getObjectiveInfo().getTarget() + " §7(" + percentage + "%)"); //TODO: multiple languages support
+                      player.sendMessage("§7[Quest] §f" + objective.getObjectiveInfo().getTarget() + " §7(" + percentage + "%)"); //TODO: multiple languages support
                   }
                });
            }
@@ -353,10 +361,12 @@ public class QuestManager {
         final int questId;
         final int objectiveIndex;
         final String title;
-        QuestObjectiveReference(int questId, int objectiveIndex, String title) {
+        final ObjectiveType type;
+        QuestObjectiveReference(int questId, int objectiveIndex, String title, ObjectiveType type) {
             this.questId = questId;
             this.objectiveIndex = objectiveIndex;
             this.title = title;
+            this.type = type;
         }
     }
 }
