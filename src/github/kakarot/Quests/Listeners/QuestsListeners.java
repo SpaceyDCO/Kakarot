@@ -55,7 +55,9 @@ public class QuestsListeners implements Listener {
         if(!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
         if(event.getCurrentItem() == null && event.getCursor() == null) return;
-        checkCollectItemsObjectives(player);
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            checkCollectItemsObjectives(player);
+        }, 1L);
     }
     public void onNpcDied(ICustomNpc<?> npc, IEntity<?> killer) {
         if(npc == null || killer == null) {
@@ -108,14 +110,19 @@ public class QuestsListeners implements Listener {
         UUID playerUUID = player.getUniqueId();
         String npcTitle = npc.getTitle();
         for(QuestManager.QuestTurnInReference reference : references) {
-            if(!npcTitle.equals(reference.getTitle())) continue;
+            if(reference.getTitle() != null && !reference.getTitle().isEmpty()) {
+                if(!npcTitle.equals(reference.getTitle())) continue;
+            }
             if(plugin.getQuestManager().hasCompletedQuest(playerUUID, reference.getQuestId())) continue;
             if(!plugin.getQuestManager().hasPickedUpQuest(playerUUID, reference.getQuestId())) continue;
             PlayerQuestProgress progress = plugin.getQuestManager().getPlayerQuestProgress(playerUUID, reference.getQuestId());
             int totalProgress = progress.getTotalProgressPercentage(plugin.getQuestManager().getQuest(reference.getQuestId()));
             if(totalProgress < 100) continue;
             //Player has passed the checks, give reward
-            if(plugin.getQuestManager().hasRequiredItems(player, reference.getQuestId())) plugin.getQuestManager().completeQuest(playerUUID, reference.getQuestId());
+            if(plugin.getQuestManager().hasRequiredItems(player, reference.getQuestId())) {
+                plugin.getQuestManager().removeQuestItems(player, reference.getQuestId());
+                plugin.getQuestManager().completeQuest(playerUUID, reference.getQuestId());
+            }
         }
     }
     private void checkCollectItemsObjectives(Player player) {
@@ -131,11 +138,15 @@ public class QuestsListeners implements Listener {
             for(int i = 0; i < quest.getObjectiveCount(); i++) {
                 QuestObjective objective = quest.getObjectives().get(i);
                 if(objective.getType() != ObjectiveType.COLLECT_ITEMS) continue;
-                if(plugin.getQuestManager().hasCompletedObjective(playerUUID, questId, i)) continue; //TODO: add hasCompletedQuest check maybe?
+                if(plugin.getQuestManager().hasCompletedObjective(playerUUID, questId, i)) continue;
                 int finalI = i;
                 plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                    if(plugin.getProgressManager().playerHasRequiredItem(player, objective)) {
-                        plugin.getQuestManager().progressObjective(playerUUID, questId, finalI, player.getLocation(), objective.getRequired());
+                    if(plugin.getProgressManager().playerHasSingleRequiredItem(player, objective)) {
+                        int actualCount = plugin.getProgressManager().getRequiredItemInventory(player, objective);
+                        int currentProgress = playerQuestProgress.getObjectiveProgress()[finalI];
+                        if(actualCount <= currentProgress) return;
+                        int progressToAdd = actualCount - currentProgress;
+                        plugin.getQuestManager().progressObjective(playerUUID, questId, finalI, player.getLocation(), progressToAdd);
                     }
                 }, 1L);
             }
