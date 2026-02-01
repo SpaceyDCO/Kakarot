@@ -76,11 +76,11 @@ public class QuestsListeners implements Listener {
             if(plugin.getQuestManager().hasPickedUpQuest(playerUUID, questId)) {
                 if(plugin.getQuestManager().hasCompletedQuest(playerUUID, reference.getQuestId()) || plugin.getQuestManager().hasCompletedObjective(playerUUID, reference.getQuestId(), reference.getObjectiveIndex())) continue;
                 Location completionLoc = new Location(player.getWorld(), npc.getX(), npc.getY(), npc.getZ());
-                if(!reference.getTitle().isEmpty() && npc.getTitle().equals(reference.getTitle())) {
-                    plugin.getQuestManager().progressObjective(playerUUID, reference.getQuestId(), reference.getObjectiveIndex(), completionLoc, amount);
-                }else if(reference.getTitle().isEmpty()) {
-                    plugin.getQuestManager().progressObjective(playerUUID, reference.getQuestId(), reference.getObjectiveIndex(), completionLoc, amount);
+                if(reference.getTitle() != null) {
+                    if(npc.getTitle().equals(reference.getTitle())) plugin.getQuestManager().progressObjective(playerUUID, reference.getQuestId(), reference.getObjectiveIndex(), completionLoc, amount);
+                    return;
                 }
+                plugin.getQuestManager().progressObjective(playerUUID, reference.getQuestId(), reference.getObjectiveIndex(), completionLoc, amount);
             }
         }
     }
