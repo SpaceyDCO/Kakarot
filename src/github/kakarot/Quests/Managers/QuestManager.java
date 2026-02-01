@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -26,6 +27,7 @@ public class QuestManager {
     //Key: playerUUID, Value: map of questId -> progress ; useful for checking player progress quickly
     private final Map<String, Map<Integer, PlayerQuestProgress>> playerProgress = new HashMap<>();
     public final Map<String, List<QuestObjectiveReference>> npcObjectives = new HashMap<>();
+    public final Map<String, List<QuestTurnInReference>> npcsTurnIn = new HashMap<>();
     //TODO: Collect Item objective, then "Autocomplete" feature, finally finish the DATABASE.
     // After those, Quest tracking and Quest GUI for admins
     public QuestManager(Main plugin) {
@@ -257,6 +259,9 @@ public class QuestManager {
                     npcObjectives.computeIfAbsent(obj.getObjectiveInfo().getTarget(), k -> new ArrayList<>()).add(new QuestObjectiveReference(quest.getId(), i, obj.getObjectiveInfo().getTitle(), obj.getType()));
                 }
             }
+            if(quest.isTurnIn()) {
+                npcsTurnIn.computeIfAbsent(quest.getNpcTurnInDetails().getName(), k -> new ArrayList<>()).add(new QuestTurnInReference(quest.getId(), quest.getNpcTurnInDetails().getTitle()));
+            }
         }
     }
     private int extractQuestIdFromFilename(String fileName) throws IllegalArgumentException {
@@ -355,7 +360,11 @@ public class QuestManager {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             //QuestDB.updateObjectiveProgress(playerUUID, questId, objectiveIndex, newProgress); TODO: database call
             if(quest.areAllObjectivesCompletes(progress.getObjectiveProgress())) {
-                completeQuestAsync(playerUUID, questId);
+                if(!quest.isTurnIn()) completeQuestAsync(playerUUID, questId);
+                else {
+                    Player player = Bukkit.getPlayer(playerUUID);
+                    player.sendMessage("§aQuest completed!, go back to " + quest.getNpcTurnInDetails().getName() + " to turn in the quest!");
+                }
             }else {
                 plugin.getServer().getScheduler().runTask(plugin, () -> {
                     Player player = Bukkit.getPlayer(playerUUID);
@@ -375,6 +384,17 @@ public class QuestManager {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
            completeQuestAsync(playerUUID, questId);
         });
+    }
+    public boolean hasRequiredItems(Player player, int questId) {
+        Quest quest = getQuest(questId);
+        int totalCollectItemsObjectives = 0;
+        int completionCount = 0;
+        for(QuestObjective obj : quest.getObjectives()) {
+            if(obj.getType() != ObjectiveType.COLLECT_ITEMS) continue;
+            totalCollectItemsObjectives++;
+            if(plugin.getProgressManager().playerHasRequiredItem(player, obj)) completionCount++;
+        }
+        return completionCount >= totalCollectItemsObjectives;
     }
     public void completeQuestAsync(UUID playerUUID, int questId) {
         Quest quest = getQuest(questId);
@@ -442,6 +462,15 @@ public class QuestManager {
             this.objectiveIndex = objectiveIndex;
             this.title = title;
             this.type = type;
+        }
+    }
+    @Getter
+    public static class QuestTurnInReference {
+        final int questId;
+        final String title;
+        QuestTurnInReference(int questId, String title) {
+            this.questId = questId;
+            this.title = title;
         }
     }
 }
