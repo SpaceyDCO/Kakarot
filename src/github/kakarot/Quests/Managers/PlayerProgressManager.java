@@ -50,13 +50,12 @@ public class PlayerProgressManager {
         ObjectiveInfo info = objective.getObjectiveInfo();
         int itemId = info.getItemId();
         byte dataValue = info.getDataValue();
-        String requiredNbt = info.getNbt();
         NBTTagCompound requiredCompound = info.getParsedNbt() != null ? info.getParsedNbt() : null;
         int count = 0;
         for(ItemStack item : player.getInventory().getContents()) {
             if(item == null || item.getTypeId() != itemId) continue;
             if(item.getData().getData() != dataValue) continue;
-            if(requiredNbt != null && !requiredNbt.isEmpty()) {
+            if(requiredCompound != null) {
                 if(!itemMatchesNbt(item, requiredCompound)) continue;
             }
             count += item.getAmount();
