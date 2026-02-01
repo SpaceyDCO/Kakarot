@@ -5,6 +5,7 @@ import github.kakarot.Quests.Models.*;
 import github.kakarot.Quests.Quest;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -269,31 +270,46 @@ public class QuestManager {
         QuestObjective objective = quest.getObjectives().get(objectiveIndex);
         return progress.hasCompletedObjective(objectiveIndex, objective.getRequired());
     }
-    //Can be called async
-    public void progressObjective(UUID playerUUID, int questId, int objectiveIndex, int amount) {
+    public void progressObjective(UUID playerUUID, int questId, int objectiveIndex, Location completionLoc, int amount) {
         Quest quest = getQuest(questId);
         if(quest == null) return;
         PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
         if(progress == null) return;
-        if(hasCompletedQuest(playerUUID, questId) || hasCompletedObjective(playerUUID, questId, objectiveIndex)) return; //Quest or objective already completed
         if(objectiveIndex >= quest.getObjectiveCount()) return;
         QuestObjective objective = quest.getObjectives().get(objectiveIndex);
+        if(objective.isShareable()) {
+            Player player = Bukkit.getPlayer(playerUUID);
+            if(plugin.getPartyManager().getParty(player).isPresent()) {
+                for(UUID member : plugin.getPartyManager().getParty(player).get().getMembers()) {
+                    Player partyPlayer = Bukkit.getPlayer(member);
+                    if(partyPlayer == null || !partyPlayer.isOnline()) continue;
+                    //Progress objective for player IF he is within 75 blocks from the objective completion location
+                    if(hasPickedUpQuest(member, questId) && isPlayerWithinObjectiveRange(player.getLocation(), completionLoc, 75)) progressObjectiveForPlayer(progress, objective, quest, member, questId, objectiveIndex, amount);
+                }
+                return;
+            }
+        }
+        progressObjectiveForPlayer(progress, objective, quest, playerUUID, questId, objectiveIndex, amount);
+    }
+    //Can be called on main thread
+    public void progressObjectiveForPlayer(PlayerQuestProgress progress, QuestObjective objective, Quest quest, UUID playerUUID, int questId, int objectiveIndex, int amount) {
+        if(hasCompletedQuest(playerUUID, questId) || hasCompletedObjective(playerUUID, questId, objectiveIndex)) return; //Quest or objective already completed
         int currentProgress = progress.getObjectiveProgress()[objectiveIndex];
         int newProgress = Math.min(currentProgress + amount, objective.getRequired());
         progress.getObjectiveProgress()[objectiveIndex] = newProgress;
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-           //QuestDB.updateObjectiveProgress(playerUUID, questId, objectiveIndex, newProgress); TODO: database call
-           if(quest.areAllObjectivesCompletes(progress.getObjectiveProgress())) {
-               completeQuestAsync(playerUUID, questId);
-           }else {
-               plugin.getServer().getScheduler().runTask(plugin, () -> {
-                  Player player = Bukkit.getPlayer(playerUUID);
-                  if(player != null && player.isOnline()) {
-                      int percentage = objective.getProgressCompletedAsPercentage(newProgress);
-                      player.sendMessage("§7[Quest] §f" + objective.getObjectiveInfo().getTarget() + " §7(" + percentage + "%)"); //TODO: multiple languages support
-                  }
-               });
-           }
+            //QuestDB.updateObjectiveProgress(playerUUID, questId, objectiveIndex, newProgress); TODO: database call
+            if(quest.areAllObjectivesCompletes(progress.getObjectiveProgress())) {
+                completeQuestAsync(playerUUID, questId);
+            }else {
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    Player player = Bukkit.getPlayer(playerUUID);
+                    if(player != null && player.isOnline()) {
+                        int percentage = objective.getProgressCompletedAsPercentage(newProgress);
+                        player.sendMessage("§7[Quest] §f" + objective.getObjectiveInfo().getTarget() + " §7(" + percentage + "%)"); //TODO: multiple languages support
+                    }
+                });
+            }
         });
     }
     public void completeQuest(UUID playerUUID, int questId) {
@@ -355,6 +371,10 @@ public class QuestManager {
                 plugin.getLogger().log(Level.SEVERE, "Error while trying to give reward type " + reward.getType() + " value " + reward.getValue() + " to player " + playerName, e);
             }
         }
+    }
+    private boolean isPlayerWithinObjectiveRange(Location playerLocation, Location completionLocation, int range) {
+        if(playerLocation.getWorld() != completionLocation.getWorld()) return false;
+        return playerLocation.distance(completionLocation) < range;
     }
     @Getter
     public static class QuestObjectiveReference {
