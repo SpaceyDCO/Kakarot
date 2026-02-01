@@ -53,4 +53,7 @@ public class PlayerQuestProgress {
         Arrays.fill(this.objectiveProgress, 0);
         this.status = QuestStatus.IN_PROGRESS;
     }
+    public boolean hasCompletedObjective(int objectiveIndex, int requiredAmount) {
+        return this.objectiveProgress[objectiveIndex] >= requiredAmount;
+    }
 }
