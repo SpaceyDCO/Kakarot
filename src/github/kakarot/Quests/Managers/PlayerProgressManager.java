@@ -62,10 +62,42 @@ public class PlayerProgressManager {
             if(count >= objective.getRequired()) {
                 return true;
             }
+            count += item.getAmount();
         }
         return false;
     }
-    private boolean itemMatchesNbt(ItemStack item, NBTTagCompound requiredNbt) {
+    public boolean playerHasSingleRequiredItem(Player player, QuestObjective objective) {
+        ObjectiveInfo info = objective.getObjectiveInfo();
+        int itemId = info.getItemId();
+        byte dataValue = info.getDataValue();
+        NBTTagCompound requiredCompound = info.getParsedNbt() != null ? info.getParsedNbt() : null;
+        for(ItemStack item : player.getInventory().getContents()) {
+            if(item == null || item.getTypeId() != itemId) continue;
+            if(item.getData().getData() != dataValue) continue;
+            if(requiredCompound != null) {
+                if(!itemMatchesNbt(item, requiredCompound)) continue;
+            }
+            return true;
+        }
+        return false;
+    }
+    public int getRequiredItemInventory(Player player, QuestObjective objective) {
+        ObjectiveInfo info = objective.getObjectiveInfo();
+        int itemId = info.getItemId();
+        byte dataValue = info.getDataValue();
+        NBTTagCompound requiredCompound = info.getParsedNbt() != null ? info.getParsedNbt() : null;
+        int count = 0;
+        for(ItemStack item : player.getInventory().getContents()) {
+            if(item == null || item.getTypeId() != itemId) continue;
+            if(item.getData().getData() != dataValue) continue;
+            if(requiredCompound != null) {
+                if(!itemMatchesNbt(item, requiredCompound)) continue;
+            }
+            count += item.getAmount();
+        }
+        return count;
+    }
+    public boolean itemMatchesNbt(ItemStack item, NBTTagCompound requiredNbt) {
         NbtHandler handler = new NbtHandler(item);
         if(!handler.hasNBT() && requiredNbt != null) return false; //Item HAS NOT NBT, but the objective requires NBT
         return nbtContainsAllTags(handler.getCompound(), requiredNbt);
