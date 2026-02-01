@@ -5,7 +5,9 @@ import com.google.gson.GsonBuilder;
 import github.kakarot.Main;
 import github.kakarot.Quests.Models.*;
 import github.kakarot.Quests.Quest;
+import github.kakarot.Tools.NbtHandler;
 import lombok.Getter;
+import net.minecraft.nbt.NBTTagCompound;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -360,7 +362,7 @@ public class QuestManager {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             //QuestDB.updateObjectiveProgress(playerUUID, questId, objectiveIndex, newProgress); TODO: database call
             if(quest.areAllObjectivesCompletes(progress.getObjectiveProgress())) {
-                if(!quest.isTurnIn()) completeQuestAsync(playerUUID, questId);
+                if(!quest.isTurnIn()) completeQuest(playerUUID, questId);
                 else {
                     Player player = Bukkit.getPlayer(playerUUID);
                     player.sendMessage("§aQuest completed!, go back to " + quest.getNpcTurnInDetails().getName() + " to turn in the quest!");
@@ -381,12 +383,16 @@ public class QuestManager {
         if(quest == null) return;
         PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
         if(progress == null)  return;
+        if(hasCompletedQuest(playerUUID, questId)) return;
+        progress.markCompleted(getQuest(questId));
+        removeQuestItems(Bukkit.getPlayer(playerUUID), questId);
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
            completeQuestAsync(playerUUID, questId);
         });
     }
     public boolean hasRequiredItems(Player player, int questId) {
         Quest quest = getQuest(questId);
+        if(quest == null) return false;
         int totalCollectItemsObjectives = 0;
         int completionCount = 0;
         for(QuestObjective obj : quest.getObjectives()) {
@@ -396,6 +402,30 @@ public class QuestManager {
         }
         return completionCount >= totalCollectItemsObjectives;
     }
+    public void removeQuestItems(Player player, int questId) {
+        Quest quest = getQuest(questId);
+        if(quest == null) return;
+        for(QuestObjective obj : quest.getObjectives()) {
+            if(obj.getType() != ObjectiveType.COLLECT_ITEMS) continue;
+            ObjectiveInfo info = obj.getObjectiveInfo();
+            int itemId = info.getItemId();
+            byte dataValue = info.getDataValue();
+            NBTTagCompound requiredNBT = info.getParsedNbt();
+            int amountToRemove = obj.getRequired();
+            for(int i = 0; i < player.getInventory().getSize(); i++) {
+                ItemStack item = player.getInventory().getContents()[i];
+                if(amountToRemove <= 0) break;
+                if(item == null || item.getTypeId() != itemId) continue;
+                if(item.getData().getData() != dataValue) continue;
+                if(requiredNBT != null) {
+                    if(!plugin.getProgressManager().itemMatchesNbt(item, requiredNBT)) continue;
+                }
+                int removeCount = Math.min(item.getAmount(), amountToRemove);
+                item.setAmount(item.getAmount() - removeCount);
+                amountToRemove -= removeCount;
+            }
+        }
+    }
     public void completeQuestAsync(UUID playerUUID, int questId) {
         Quest quest = getQuest(questId);
         if(quest == null) return;
@@ -403,7 +433,7 @@ public class QuestManager {
         if(progress == null)  return;
         if(hasCompletedQuest(playerUUID, questId)) return; //Quest already completed
 //        QuestDB.completeQuest(playerUUID, questId, quest.getRepeatCooldown());
-        progress.markCompleted(quest);
+        //progress.markCompleted(quest);
 //        if(QuestDB.getTrackedQuest(playerUUID) == questId) QuestDB.setTrackedQuest(playerUUID, -1);
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             executeRewards(playerUUID, quest);
