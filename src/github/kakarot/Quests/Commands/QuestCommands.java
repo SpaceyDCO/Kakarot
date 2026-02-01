@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class QuestCommands implements CommandExecutor, TabCompleter {
     @Override
-    public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String alias, String[] args) {
+    public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String alias, String[] args) { //TODO: "Requeriments" for objectives (can't be completed before finishing the others)
         String AVAILABLE_COMMANDS = "list, info, track, untrack, add, complete, debug";
         if(args.length > 0 && sender.hasPermission("kakarot.quest.admin")) {
             String subcommand = args[0].toLowerCase();
@@ -34,7 +34,6 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
                         sender.sendMessage("§cUsage: /quest add <player> <quest_id>");
                         return true;
                     }
-                    //TODO: add player online check
                     addQuestToPlayer(sender, args[1], args[2]);
                     return true;
                 case "complete":
@@ -140,7 +139,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         player.sendMessage("§8§m─────────────────────────────");
         player.sendMessage("§7Use §f/quest info <id> §7for details");
     }
-    private void showQuestInfo(Player player, String questIdStr) {
+    private void showQuestInfo(Player player, String questIdStr) { //TODO: better quest info (show skull if kill, book if interact and so on)
         int questId;
         try {
             questId = Integer.parseInt(questIdStr);
@@ -151,8 +150,11 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         QuestManager questManager = Main.instance.getQuestManager();
         Quest quest = questManager.getQuest(questId);
         if(quest == null) {
-            player.sendMessage("&cQuest #" + questId + " not found!");
-            //TODO: add a check so players can query latest quests or make them query only collected quests
+            player.sendMessage("§cQuest #" + questId + " not found!");
+            return;
+        }
+        if(!questManager.hasPickedUpQuest(player.getUniqueId(), questId) && !player.hasPermission("kakarot.quest.admin")) {
+            player.sendMessage("§cYou can't see information for Quest #" + questIdStr + ". §cAccept it first!");
             return;
         }
         PlayerQuestProgress progress = questManager.getPlayerQuestProgress(player.getUniqueId(), questId);
@@ -168,19 +170,19 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             String checkmark = complete ? "§a✓" : "§7○";
             String progressText = "§7(" + currentProgress + "/" + obj.getRequired() + ")";
             player.sendMessage(checkmark + " §f" + obj.getObjectiveInfo().getTarget() + " " + progressText);
+        }
+        player.sendMessage("");
+        player.sendMessage("§a§lRewards:");
+        for(QuestReward questReward : quest.getRewards()) {
+            player.sendMessage("§a+ §f" + getRewardDescription("es", questReward));
+        }
+        if(quest.isRepeatable()) {
             player.sendMessage("");
-            player.sendMessage("§a§lRewards:");
-            for(QuestReward questReward : quest.getRewards()) {
-                player.sendMessage("§a+ §f" + getRewardDescription("es", questReward));
-            }
-            if(quest.isRepeatable()) {
-                player.sendMessage("");
-                player.sendMessage("§7Repeatable every §f" + formatCooldown(quest.getRepeatCooldown()));
-            }
-            player.sendMessage("§8§m─────────────────────────────");
-            if(progress != null && progress.getStatus() == QuestStatus.IN_PROGRESS) {
-                player.sendMessage("§7Use §f/quest track " + questIdStr + " §7to track this quest");
-            }
+            player.sendMessage("§7Repeatable every §f" + formatCooldown(quest.getRepeatCooldown()));
+        }
+        player.sendMessage("§8§m─────────────────────────────");
+        if(progress != null && progress.getStatus() == QuestStatus.IN_PROGRESS) {
+            player.sendMessage("§7Use §f/quest track " + questIdStr + " §7to track this quest");
         }
     }
     private void trackQuest(Player player, String questIdStr) {
@@ -204,7 +206,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
     }
     private void addQuestToPlayer(CommandSender sender, String playerName, String questIdStr) {
         Player target = Bukkit.getPlayer(playerName);
-        if(target == null) {
+        if(target == null || !target.isOnline()) {
             sender.sendMessage("§cPlayer not found: " + playerName);
             return;
         }
