@@ -1,5 +1,7 @@
 package github.kakarot.Quests.Managers;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import github.kakarot.Main;
 import github.kakarot.Quests.Models.*;
 import github.kakarot.Quests.Quest;
@@ -13,6 +15,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
@@ -46,163 +50,197 @@ public class QuestManager {
         loadQuests();
         plugin.getLogger().info("Reloaded quests!");
     }
-    /**
-     * Load all quests from quests/quests.yml
-     */
     private void loadQuests() {
-        try {
-            File questFolder = new File(plugin.getDataFolder(), "quests");
-            if(!questFolder.exists()) if(!questFolder.mkdirs()) plugin.getLogger().severe("Could not create folder \"quests\" in " + questFolder.getAbsolutePath());
-            File questsFile = new File(questFolder, "quests.yml");
-            if(!questsFile.exists()) createDefaultQuests(questsFile);
-            FileConfiguration config = YamlConfiguration.loadConfiguration(questsFile);
-            ConfigurationSection questsSection = config.getConfigurationSection("quests");
-            if(questsSection == null) {
-                plugin.getLogger().warning("No quests section found in quests.yml");
+        File dataFolder = new File(plugin.getDataFolder(), "quests/data");
+        if(!dataFolder.exists()) {
+            if(dataFolder.mkdirs()) createDefaultQuests(new File(dataFolder, "quest-example_1.json"));
+            else {
+                plugin.getLogger().severe("Could not create quest data folder in " + dataFolder.getAbsolutePath());
                 return;
             }
-            for(String questIdStr : questsSection.getKeys(false)) {
-                try {
-                    int questId = Integer.parseInt(questIdStr);
-                    ConfigurationSection questSection = questsSection.getConfigurationSection(questIdStr);
-                    if(questSection == null) continue;
-                    Quest quest = loadQuestFromYAML(questId, questSection);
-                    if(quest != null) {
-                        quests.put(questId, quest);
-                        buildReverseIndex();
-                    }
-                }catch(NumberFormatException e) {
-                    plugin.getLogger().warning("Invalid quest ID: " + questIdStr);
+        }
+        File[] questFiles = dataFolder.listFiles((dir, name) -> name.endsWith(".json"));
+        if(questFiles == null || questFiles.length == 0) {
+            plugin.getLogger().warning("No quest files found in quests/data");
+            return;
+        }
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        for(File file : questFiles) {
+            try {
+                int questId = extractQuestIdFromFilename(file.getName());
+                Quest quest = gson.fromJson(new FileReader(file), Quest.class);
+                if(quest.getId() != questId) {
+                    plugin.getLogger().severe("ID mismatch in " + file.getName());
+                    continue;
                 }
+                quests.put(questId, quest);
+                buildReverseIndex();
+            }catch(IllegalArgumentException e) {
+                plugin.getLogger().log(Level.SEVERE, "Invalid filename: " + file.getName() + " in " + file.getAbsolutePath(), e.getMessage());
+            }catch(FileNotFoundException e) {
+                plugin.getLogger().log(Level.SEVERE, "File not found OR failed to load: " + file.getName(), e);
             }
-        }catch(Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Error loading quests.yml!", e);
         }
     }
-    /**
-     * Retrieves a single quest from YAML configuration
-     */
-    private Quest loadQuestFromYAML(int questId, ConfigurationSection questSection) {
-        try {
-            Map<String, String> names = new HashMap<>();
-            ConfigurationSection nameSection = questSection.getConfigurationSection("name");
-            if(nameSection != null) {
-                for(String locale : nameSection.getKeys(false)) {
-                    names.put(locale, nameSection.getString(locale).replace("&", "§"));
-                }
-            }
-            if(names.isEmpty()) names.put("es", "Misión #" + questId);
-            Map<String, String> descriptions = new HashMap<>();
-            ConfigurationSection descriptionSection = questSection.getConfigurationSection("description");
-            if(descriptionSection != null) {
-                for(String locale : descriptionSection.getKeys(false)) {
-                    descriptions.put(locale, descriptionSection.getString(locale).replace("&", "§"));
-                }
-            }
-            if(descriptions.isEmpty()) descriptions.put("es", "Sin descripción");
-            List<QuestObjective> objectives = new ArrayList<>();
-            List<Map<?, ?>> objectivesList = questSection.getMapList("objectives");
-            for(Map<?, ?> objMap : objectivesList) {
-                QuestObjective obj = parseObjective(objMap, questId);
-                if(obj != null) objectives.add(obj);
-            }
-            List<QuestReward> rewards = new ArrayList<>();
-            List<Map<?, ?>> rewardsList = questSection.getMapList("rewards");
-            for(Map<?, ?> rewMap : rewardsList) {
-                QuestReward reward = parseReward(rewMap);
-                if(reward != null) rewards.add(reward);
-            }
-            Map<String, String> completionMessages = new HashMap<>();
-            ConfigurationSection completionMessageSection = questSection.getConfigurationSection("completionMessage");
-            if(completionMessageSection != null) {
-                for(String locale : completionMessageSection.getKeys(false)) {
-                    completionMessages.put(locale, completionMessageSection.getString(locale));
-                }
-            }
-            boolean repeatable = questSection.getBoolean("repeatable", false);
-            long repeatCooldown = questSection.getLong("repeatCooldown", 86400000);
-            Quest quest = new Quest(
-                    questId,
-                    names,
-                    descriptions,
-                    objectives,
-                    rewards,
-                    completionMessages,
-                    repeatable,
-                    repeatCooldown
-            );
-            plugin.getLogger().info("Loaded quest #" + questId + ": "
-            + names.getOrDefault("es", "?"));
-            return quest;
-        }catch(Exception e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Error loading quest #" + questId, e);
-            return null;
-        }
-    }
-
-    /**
-     * Parses a single objective
-     */
-    private QuestObjective parseObjective(Map<?, ?> map, int questId) {
-        try {
-            String typeStr = (String) map.get("type");
-            String target = "";
-            String title = "";
-            Object objInfo = map.get("objectiveInfo");
-            if(objInfo instanceof Map<?, ?>) {
-                Map<?, ?> objMap = (Map<?, ?>) objInfo;
-                if(objMap.get("target") == null) {
-                    plugin.getLogger().warning("No objective target set for quest #" + questId);
-                    return null;
-                }
-                target = (String) objMap.get("target");
-                title = objMap.get("title") != null && !((String) objMap.get("title")).isEmpty() ? (String) objMap.get("title") : "";
-            }
-            int required;
-            if(map.get("required") != null) required = ((Number) map.get("required")).intValue();
-            else required = 1;
-            boolean shareable;
-            if(map.get("shareable") != null) shareable = (Boolean) map.get("shareable");
-            else shareable = false;
-            ObjectiveType type = ObjectiveType.valueOf(typeStr.toUpperCase());
-            ObjectiveInfo info = new ObjectiveInfo(target, title);
-            return new QuestObjective(type, info, required, shareable);
-        }catch(Exception e) {
-            plugin.getLogger().log(Level.WARNING, "Error parsing objective: " + e);
-            return null;
-        }
-    }
-
-    /**
-     * Parses a single reward
-     */
-    private QuestReward parseReward(Map<?, ?> map) {
-        try {
-            String typeStr = (String) map.get("type");
-            String value = (String) map.get("value");
-            Object descObj = map.get("descriptions");
-            Map<String, String> localizedDescriptions = new HashMap<>();
-            if(descObj instanceof Map<?, ?>) {
-                Map<?, ?> descMap = (Map<?, ?>) descObj;
-                for(Map.Entry<?, ?> descEntry : descMap.entrySet()) {
-                    localizedDescriptions.put(descEntry.getKey().toString(), descEntry.getValue().toString());
-                }
-            }
-            RewardType type = RewardType.valueOf(typeStr.toUpperCase());
-            return new QuestReward(type, value, localizedDescriptions);
-        }catch(Exception e) {
-            plugin.getLogger().log(Level.WARNING, "Error parsing quest reward: ", e);
-            return null;
-        }
-    }
+//    /**
+//     * Load all quests from quests/quests.yml
+//     * Reads from YAML, old format, moved to JSON
+//     */
+//    @Deprecated
+//    private void loadQuestsFromYaml() {
+//        try {
+//            File questFolder = new File(plugin.getDataFolder(), "quests");
+//            if(!questFolder.exists()) if(!questFolder.mkdirs()) plugin.getLogger().severe("Could not create folder \"quests\" in " + questFolder.getAbsolutePath());
+//            File questsFile = new File(questFolder, "quests.yml");
+//            if(!questsFile.exists()) createDefaultQuests(questsFile);
+//            FileConfiguration config = YamlConfiguration.loadConfiguration(questsFile);
+//            ConfigurationSection questsSection = config.getConfigurationSection("quests");
+//            if(questsSection == null) {
+//                plugin.getLogger().warning("No quests section found in quests.yml");
+//                return;
+//            }
+//            for(String questIdStr : questsSection.getKeys(false)) {
+//                try {
+//                    int questId = Integer.parseInt(questIdStr);
+//                    ConfigurationSection questSection = questsSection.getConfigurationSection(questIdStr);
+//                    if(questSection == null) continue;
+//                    Quest quest = loadQuestFromYAML(questId, questSection);
+//                    if(quest != null) {
+//                        quests.put(questId, quest);
+//                        buildReverseIndex();
+//                    }
+//                }catch(NumberFormatException e) {
+//                    plugin.getLogger().warning("Invalid quest ID: " + questIdStr);
+//                }
+//            }
+//        }catch(Exception e) {
+//            plugin.getLogger().log(Level.SEVERE, "Error loading quests.yml!", e);
+//        }
+//    }
+//    /**
+//     * Retrieves a single quest from YAML configuration
+//     */
+//    private Quest loadQuestFromYAML(int questId, ConfigurationSection questSection) {
+//        try {
+//            Map<String, String> names = new HashMap<>();
+//            ConfigurationSection nameSection = questSection.getConfigurationSection("name");
+//            if(nameSection != null) {
+//                for(String locale : nameSection.getKeys(false)) {
+//                    names.put(locale, nameSection.getString(locale).replace("&", "§"));
+//                }
+//            }
+//            if(names.isEmpty()) names.put("es", "Misión #" + questId);
+//            Map<String, String> descriptions = new HashMap<>();
+//            ConfigurationSection descriptionSection = questSection.getConfigurationSection("description");
+//            if(descriptionSection != null) {
+//                for(String locale : descriptionSection.getKeys(false)) {
+//                    descriptions.put(locale, descriptionSection.getString(locale).replace("&", "§"));
+//                }
+//            }
+//            if(descriptions.isEmpty()) descriptions.put("es", "Sin descripción");
+//            List<QuestObjective> objectives = new ArrayList<>();
+//            List<Map<?, ?>> objectivesList = questSection.getMapList("objectives");
+//            for(Map<?, ?> objMap : objectivesList) {
+//                QuestObjective obj = parseObjective(objMap, questId);
+//                if(obj != null) objectives.add(obj);
+//            }
+//            List<QuestReward> rewards = new ArrayList<>();
+//            List<Map<?, ?>> rewardsList = questSection.getMapList("rewards");
+//            for(Map<?, ?> rewMap : rewardsList) {
+//                QuestReward reward = parseReward(rewMap);
+//                if(reward != null) rewards.add(reward);
+//            }
+//            Map<String, String> completionMessages = new HashMap<>();
+//            ConfigurationSection completionMessageSection = questSection.getConfigurationSection("completionMessage");
+//            if(completionMessageSection != null) {
+//                for(String locale : completionMessageSection.getKeys(false)) {
+//                    completionMessages.put(locale, completionMessageSection.getString(locale));
+//                }
+//            }
+//            boolean repeatable = questSection.getBoolean("repeatable", false);
+//            long repeatCooldown = questSection.getLong("repeatCooldown", 86400000);
+//            Quest quest = new Quest(
+//                    questId,
+//                    names,
+//                    descriptions,
+//                    objectives,
+//                    rewards,
+//                    completionMessages,
+//                    repeatable,
+//                    repeatCooldown
+//            );
+//            plugin.getLogger().info("Loaded quest #" + questId + ": "
+//            + names.getOrDefault("es", "?"));
+//            return quest;
+//        }catch(Exception e) {
+//            Bukkit.getLogger().log(Level.SEVERE, "Error loading quest #" + questId, e);
+//            return null;
+//        }
+//    }
+//
+//    /**
+//     * Parses a single objective
+//     */
+//    private QuestObjective parseObjective(Map<?, ?> map, int questId) {
+//        try {
+//            String typeStr = (String) map.get("type");
+//            String target = "";
+//            String title = "";
+//            Object objInfo = map.get("objectiveInfo");
+//            if(objInfo instanceof Map<?, ?>) {
+//                Map<?, ?> objMap = (Map<?, ?>) objInfo;
+//                if(objMap.get("target") == null) {
+//                    plugin.getLogger().warning("No objective target set for quest #" + questId);
+//                    return null;
+//                }
+//                target = (String) objMap.get("target");
+//                title = objMap.get("title") != null && !((String) objMap.get("title")).isEmpty() ? (String) objMap.get("title") : "";
+//            }
+//            int required;
+//            if(map.get("required") != null) required = ((Number) map.get("required")).intValue();
+//            else required = 1;
+//            boolean shareable;
+//            if(map.get("shareable") != null) shareable = (Boolean) map.get("shareable");
+//            else shareable = false;
+//            ObjectiveType type = ObjectiveType.valueOf(typeStr.toUpperCase());
+//            ObjectiveInfo info = new ObjectiveInfo(target, title);
+//            return new QuestObjective(type, info, required, shareable);
+//        }catch(Exception e) {
+//            plugin.getLogger().log(Level.WARNING, "Error parsing objective: " + e);
+//            return null;
+//        }
+//    }
+//
+//    /**
+//     * Parses a single reward
+//     */
+//    private QuestReward parseReward(Map<?, ?> map) {
+//        try {
+//            String typeStr = (String) map.get("type");
+//            String value = (String) map.get("value");
+//            Object descObj = map.get("descriptions");
+//            Map<String, String> localizedDescriptions = new HashMap<>();
+//            if(descObj instanceof Map<?, ?>) {
+//                Map<?, ?> descMap = (Map<?, ?>) descObj;
+//                for(Map.Entry<?, ?> descEntry : descMap.entrySet()) {
+//                    localizedDescriptions.put(descEntry.getKey().toString(), descEntry.getValue().toString());
+//                }
+//            }
+//            RewardType type = RewardType.valueOf(typeStr.toUpperCase());
+//            return new QuestReward(type, value, localizedDescriptions);
+//        }catch(Exception e) {
+//            plugin.getLogger().log(Level.WARNING, "Error parsing quest reward: ", e);
+//            return null;
+//        }
+//    }
     private void createDefaultQuests(File destination) {
         try {
             if(!destination.exists()) {
-                Files.copy(plugin.getResource("quests/quests.yml"), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(plugin.getResource("quests/quest-example_1.json"), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 plugin.getLogger().info("Created default config: " + destination.getName());
             }
         }catch(Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not save default resource: " + "quests/quests.yml" + ".", e);
+            plugin.getLogger().log(Level.SEVERE, "Could not save default resource: " + "quests/data/quest-example_1.json", e);
         }
     }
     public Quest getQuest(int questId) {
@@ -220,6 +258,20 @@ public class QuestManager {
                     npcObjectives.computeIfAbsent(obj.getObjectiveInfo().getTarget(), k -> new ArrayList<>()).add(new QuestObjectiveReference(quest.getId(), i, obj.getObjectiveInfo().getTitle(), obj.getType()));
                 }
             }
+        }
+    }
+    private int extractQuestIdFromFilename(String fileName) throws IllegalArgumentException {
+        String name = fileName.replace(".json", "");
+        if(!name.contains("_")) throw new IllegalArgumentException("Filename must contain underscore: quest-name_id.json");
+        String[] parts = name.split("_");
+        if(parts.length != 2) throw new IllegalArgumentException("Filename must comply format quest-name_id.json (only 1 underscore)");
+        String questName = parts[0];
+        String questId = parts[1];
+        if(!questName.matches("[a-z0-9-]+")) throw new IllegalArgumentException("Quest name must be lowercase with hyphens: " + questName);
+        try {
+            return Integer.parseInt(questId);
+        }catch(NumberFormatException e) {
+            throw new IllegalArgumentException("Quest ID must be a number: " + questId);
         }
     }
     public void addQuestToPlayer(UUID playerUUID, int questId) {
