@@ -36,6 +36,14 @@
         </dependency>
 
         <dependency>
+            <groupId>KakarotMod</groupId>
+            <artifactId>kakarot</artifactId>
+            <version>1.7.10</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/kakarotmod-1.0.0.jar</systemPath>
+        </dependency>
+
+        <dependency>
             <groupId>Minecraft</groupId>
             <artifactId>mc</artifactId>
             <version>1.7.10</version>
