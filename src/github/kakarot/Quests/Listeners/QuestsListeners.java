@@ -116,11 +116,13 @@ public class QuestsListeners implements Listener {
             if(plugin.getQuestManager().hasCompletedQuest(playerUUID, reference.getQuestId())) continue;
             if(!plugin.getQuestManager().hasPickedUpQuest(playerUUID, reference.getQuestId())) continue;
             PlayerQuestProgress progress = plugin.getQuestManager().getPlayerQuestProgress(playerUUID, reference.getQuestId());
+            if(progress == null) continue;
+            Quest quest = plugin.getQuestManager().getQuest(reference.getQuestId());
+            if(quest == null) continue;
             int totalProgress = progress.getTotalProgressPercentage(plugin.getQuestManager().getQuest(reference.getQuestId()));
-            if(totalProgress < 100) continue;
+            if(totalProgress < 100) continue; //Can't turn in, not all objectives completed
             //Player has passed the checks, give reward
             if(plugin.getQuestManager().hasRequiredItems(player, reference.getQuestId())) {
-                plugin.getQuestManager().removeQuestItems(player, reference.getQuestId());
                 plugin.getQuestManager().completeQuest(playerUUID, reference.getQuestId());
             }
         }
