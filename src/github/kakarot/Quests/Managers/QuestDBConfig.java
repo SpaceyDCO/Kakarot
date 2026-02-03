@@ -75,32 +75,39 @@ public class QuestDBConfig {
             //Stores main quest progress for each player
             String createPlayerProgress =
                     "CREATE TABLE IF NOT EXISTS player_progress (" +
-                            "    player_uuid TEXT NOT NULL," +
-                            "    quest_id INTEGER NOT NULL," +
-                            "    quest_status TEXT NOT NULL DEFAULT 'NOT_PICKED_UP'," +
-                            "    picked_up_at INTEGER DEFAULT NULL," +
-                            "    completed_at INTEGER DEFAULT NULL," +
-                            "    last_completed INTEGER DEFAULT NULL," +
-                            "    next_available INTEGER DEFAULT 0," +
-                            "    PRIMARY KEY (player_uuid, quest_id)" +
-                            ");";
+                    "    player_uuid TEXT NOT NULL," +
+                    "    quest_id INTEGER NOT NULL," +
+                    "    quest_status TEXT NOT NULL DEFAULT 'NOT_PICKED_UP'," +
+                    "    picked_up_at INTEGER DEFAULT NULL," +
+                    "    completed_at INTEGER DEFAULT NULL," +
+                    "    last_completed INTEGER DEFAULT NULL," +
+                    "    next_available INTEGER DEFAULT 0," +
+                    "    PRIMARY KEY (player_uuid, quest_id)" +
+                    ");";
             stmt.execute(createPlayerProgress);
             plugin.getLogger().info("Table 'player_progress' created/verified.");
             //Stores individual objective progress (normalized array)
             String createObjectiveProgress =
                     "CREATE TABLE IF NOT EXISTS player_objective_progress (" +
-                            "    player_uuid TEXT NOT NULL," +
-                            "    quest_id INTEGER NOT NULL," +
-                            "    objective_index INTEGER NOT NULL," +
-                            "    objective_progress INTEGER NOT NULL DEFAULT 0," +
-                            "    PRIMARY KEY (player_uuid, quest_id, objective_index)," +
-                            "    FOREIGN KEY (player_uuid, quest_id)" +
-                            "        REFERENCES player_progress(player_uuid, quest_id)" +
-                            "        ON DELETE CASCADE" +
-                            ");";
+                    "    player_uuid TEXT NOT NULL," +
+                    "    quest_id INTEGER NOT NULL," +
+                    "    objective_index INTEGER NOT NULL," +
+                    "    objective_progress INTEGER NOT NULL DEFAULT 0," +
+                    "    PRIMARY KEY (player_uuid, quest_id, objective_index)," +
+                    "    FOREIGN KEY (player_uuid, quest_id)" +
+                    "        REFERENCES player_progress(player_uuid, quest_id)" +
+                    "        ON DELETE CASCADE" +
+                    ");";
 
             stmt.execute(createObjectiveProgress);
             plugin.getLogger().info("Table 'player_objective_progress' created/verified.");
+            String createPlayerSettings =
+                    "CREATE TABLE IF NOT EXISTS player_settings (" +
+                    "    player_uuid TEXT PRIMARY KEY NOT NULL," +
+                    "    language TEXT NOT NULL DEFAULT 'es'," + //Player language preference, spanish by default
+                    "    created_at INTEGER NOT NULL," + //First time the player logged in
+                    "    last_login INTEGER NOT NULL" + //Last player login timestamp
+                    ");";
             //Indexes for faster query
             createIndexes(stmt);
         } catch (SQLException e) {
@@ -109,15 +116,20 @@ public class QuestDBConfig {
         }
     }
     private void createIndexes(Statement stmt) throws SQLException {
-        // Index on player_uuid for fast "get all quests for player" queries
+        //Index on player_uuid for fast "get all quests for player" queries
         stmt.execute(
                 "CREATE INDEX IF NOT EXISTS idx_player_uuid " +
                         "ON player_progress(player_uuid);"
         );
-        // Index on quest_status for fast "get all IN_PROGRESS quests" queries
+        //Index on quest_status for fast "get all IN_PROGRESS quests" queries
         stmt.execute(
                 "CREATE INDEX IF NOT EXISTS idx_quest_status " +
                         "ON player_progress(quest_status);"
+        );
+        //Index on player_settings for fast "get all 'ES' players" queries
+        stmt.execute(
+                "CREATE INDEX IF NOT EXISTS idx_language " +
+                        "ON player_settings(language)"
         );
         plugin.getLogger().info("Database indexes created/verified.");
     }
