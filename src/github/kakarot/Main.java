@@ -10,10 +10,7 @@ import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
 import github.kakarot.Quests.Commands.QuestCommands;
 import github.kakarot.Quests.Listeners.QuestsListeners;
-import github.kakarot.Quests.Managers.PlayerProgressManager;
-import github.kakarot.Quests.Managers.QuestDBConfig;
-import github.kakarot.Quests.Managers.QuestDBManager;
-import github.kakarot.Quests.Managers.QuestManager;
+import github.kakarot.Quests.Managers.*;
 import github.kakarot.Raids.Arena;
 import github.kakarot.Raids.Listeners.GameListener;
 import github.kakarot.Raids.Managers.ConfigManager;
@@ -77,6 +74,7 @@ public class Main extends JavaPlugin {
     private QuestsListeners questsListeners;
     @Getter QuestDBConfig databaseConfig;
     @Getter QuestDBManager questDBManager;
+    @Getter SettingsManager settingsManager;
     //Quests
 
     @Getter private IPacketHandler packetHandler;
@@ -123,6 +121,7 @@ public class Main extends JavaPlugin {
         this.questManager.initialize();
         this.questsListeners = new QuestsListeners(this);
         this.progressManager = new PlayerProgressManager(this);
+        this.settingsManager = new SettingsManager(this);
         getServer().getPluginManager().registerEvents(this.questsListeners, this);
         //QuestDBConfig.initialize(this);
         getCommand("quest").setExecutor(new QuestCommands());
