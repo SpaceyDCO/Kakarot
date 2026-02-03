@@ -28,22 +28,17 @@ import java.util.Map;
 import java.util.UUID;
 
 public class QuestsListeners implements Listener {
-    private final PlayerProgressManager progressManager;
     private final Main plugin;
     public QuestsListeners(Main plugin) {
         this.plugin = plugin;
-        this.progressManager = plugin.getProgressManager();
     }
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        //questManager.loadPlayerProgress(event.getPlayer().getUniqueId());
-        //TODO: Load player progress on join
+        this.plugin.getProgressManager().loadPlayerProgress(event.getPlayer().getUniqueId());
     }
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        OfflinePlayer player = Bukkit.getOfflinePlayer(event.getPlayer().getUniqueId());
-        if(player == null) return;
-        progressManager.savePlayerProgress(player.getUniqueId());
+        this.plugin.getProgressManager().savePlayerProgress(event.getPlayer().getUniqueId(), event.getPlayer().getName());
     }
     @EventHandler
     public void onItemPickup(PlayerPickupItemEvent event) {
