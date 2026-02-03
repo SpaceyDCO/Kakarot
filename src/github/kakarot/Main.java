@@ -12,6 +12,7 @@ import github.kakarot.Quests.Commands.QuestCommands;
 import github.kakarot.Quests.Listeners.QuestsListeners;
 import github.kakarot.Quests.Managers.PlayerProgressManager;
 import github.kakarot.Quests.Managers.QuestDBConfig;
+import github.kakarot.Quests.Managers.QuestDBManager;
 import github.kakarot.Quests.Managers.QuestManager;
 import github.kakarot.Raids.Arena;
 import github.kakarot.Raids.Listeners.GameListener;
@@ -74,6 +75,8 @@ public class Main extends JavaPlugin {
     @Getter private QuestManager questManager;
     @Getter private PlayerProgressManager progressManager;
     private QuestsListeners questsListeners;
+    @Getter QuestDBConfig databaseConfig;
+    @Getter QuestDBManager questDBManager;
     //Quests
 
     @Getter private IPacketHandler packetHandler;
@@ -84,6 +87,15 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        //Quests
+        this.databaseConfig = new QuestDBConfig(this);
+        if(!this.databaseConfig.initialize()) {
+            getLogger().severe("Failed to initialize database! Disabling plugin...");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        this.questDBManager = new QuestDBManager(this);
+        //Quests
         this.messageManager = new MessageManager(this);
 
         //Parties
@@ -146,7 +158,7 @@ public class Main extends JavaPlugin {
         PlayerQuitEvent.getHandlerList().unregister(this.questsListeners);
         InventoryClickEvent.getHandlerList().unregister(this.questsListeners);
         PlayerPickupItemEvent.getHandlerList().unregister(this.questsListeners);
-        QuestDBConfig.closeConnection();
+        this.databaseConfig.close();
         //Quests
     }
 
