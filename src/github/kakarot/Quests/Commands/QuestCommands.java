@@ -68,6 +68,18 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         }
         String subCommand = args[0].toLowerCase();
         switch(subCommand) {
+            case "language":
+                if(args.length < 2) {
+                    player.sendMessage("§cUsage: /quest language <new language>\nValues: 'es', 'en'");
+                    return true;
+                }
+                if(!args[1].equalsIgnoreCase("en") && !args[1].equalsIgnoreCase("es")) {
+                    player.sendMessage("§cValues: 'es', 'en'");
+                    return true;
+                }
+                String newLanguage = args[1].toLowerCase();
+                handleSetLanguageCommand(player, newLanguage);
+                break;
             case "list":
                 showQuestList(player);
                 break;
@@ -295,6 +307,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             completions.add("info");
             completions.add("track");
             completions.add("untrack");
+            completions.add("language");
             if (sender.hasPermission("kakarot.quest.admin")) {
                 completions.add("add");
                 completions.add("complete");
@@ -336,5 +349,9 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             }
         }
         return completions;
+    }
+    private void handleSetLanguageCommand(Player player, String newLanguage) {
+        Main.instance.getSettingsManager().setPlayerLanguage(player.getUniqueId(), newLanguage);
+        player.sendMessage("§aLanguage changed to " + newLanguage + " correctly");
     }
 }
