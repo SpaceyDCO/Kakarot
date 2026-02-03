@@ -126,11 +126,6 @@ public class QuestDBConfig {
                 "CREATE INDEX IF NOT EXISTS idx_quest_status " +
                         "ON player_progress(quest_status);"
         );
-        //Index on player_settings for fast "get all 'ES' players" queries
-        stmt.execute(
-                "CREATE INDEX IF NOT EXISTS idx_language " +
-                        "ON player_settings(language)"
-        );
         plugin.getLogger().info("Database indexes created/verified.");
     }
 }
