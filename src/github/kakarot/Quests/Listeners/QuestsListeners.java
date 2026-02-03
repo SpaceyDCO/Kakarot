@@ -35,6 +35,7 @@ public class QuestsListeners implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         this.plugin.getProgressManager().loadPlayerProgress(event.getPlayer().getUniqueId());
+        this.plugin.getSettingsManager().loadPlayerSettings(event.getPlayer().getUniqueId());
     }
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
