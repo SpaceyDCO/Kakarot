@@ -108,6 +108,7 @@ public class QuestDBConfig {
                     "    created_at INTEGER NOT NULL," + //First time the player logged in
                     "    last_login INTEGER NOT NULL" + //Last player login timestamp
                     ");";
+            stmt.execute(createPlayerSettings);
             //Indexes for faster query
             createIndexes(stmt);
         } catch (SQLException e) {
