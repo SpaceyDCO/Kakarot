@@ -4,6 +4,7 @@ import github.kakarot.Main;
 import github.kakarot.Quests.Models.PlayerQuestProgress;
 import github.kakarot.Quests.Models.QuestStatus;
 import github.kakarot.Quests.Quest;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,6 +13,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
 
+@Slf4j
 public class QuestDBManager {
     private final Main plugin;
     private final QuestDBConfig dbConfig;
@@ -361,6 +363,76 @@ public class QuestDBManager {
             plugin.getLogger().log(Level.SEVERE,
                     "Error checking quest availability for " + playerUUID, e);
             return false;
+        }
+    }
+    protected String getPlayerLanguage(UUID playerUUID) {
+        Connection conn = this.dbConfig.getConnection();
+        if(conn == null) {
+            plugin.getLogger().severe("Cannot get nor create player settings - database not connected!");
+            return "es";
+        }
+        try {
+            String selectSql = "SELECT language FROM player_settings WHERE player_uuid = ?";
+            try(PreparedStatement statement = conn.prepareStatement(selectSql)) {
+                statement.setString(1, playerUUID.toString());
+                try(ResultSet rs = statement.executeQuery()) {
+                    if(rs.next()) {
+                        updateLastLogin(playerUUID);
+                        return rs.getString("language");
+                    }
+                }
+            }
+            String insertSql = "INSERT INTO player_settings (player_uuid, language, created_at, last_login) VALUES (?, 'es', ?, ?)";
+            long now = System.currentTimeMillis();
+            try(PreparedStatement statement = conn.prepareStatement(insertSql)) {
+                statement.setString(1, playerUUID.toString());
+                statement.setLong(2, now);
+                statement.setLong(3, now);
+                statement.executeUpdate();
+            }
+            plugin.getLogger().info("Created default settings for player: " + playerUUID);
+            return "es";
+        }catch(SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Error getting or creating player settings for player " + playerUUID.toString(), e);
+            return "es";
+        }
+    }
+    protected boolean setPlayerLanguage(UUID playerUUID, String newLanguage) {
+        Connection conn = this.dbConfig.getConnection();
+        if(conn == null) {
+            plugin.getLogger().severe("Cannot get nor create player settings - database not connected!");
+            return false;
+        }
+        String sql = "UPDATE player_settings SET language = ? WHERE player_uuid = ?";
+        try(PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setString(1, newLanguage);
+            statement.setString(2, playerUUID.toString());
+            int rowsAffected = statement.executeUpdate();
+            if(rowsAffected == 0) {
+                plugin.getLogger().severe("Failed to update language for " + playerUUID.toString() + ". Player setting not found");
+                return false;
+            }
+            plugin.getLogger().info(String.format("Update language for %s: %s", playerUUID, newLanguage));
+            return true;
+        }catch(SQLException e) {
+            plugin.getLogger().info("Error setting new language for player " + playerUUID);
+            return false;
+        }
+    }
+    private void updateLastLogin(UUID playerUUID) {
+        Connection conn = this.dbConfig.getConnection();
+        if(conn == null) {
+            plugin.getLogger().severe("Can not update last player login - database not connected!");
+            return;
+        }
+            String sql = "UPDATE player_settings SET last_login = ? WHERE player_uuid = ?";
+        try(PreparedStatement statement = conn.prepareStatement(sql)) {
+            long now = System.currentTimeMillis();
+            statement.setLong(1, now);
+            statement.setString(2, playerUUID.toString());
+            statement.executeUpdate();
+        }catch(SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to update last login for player " + playerUUID, e);
         }
     }
     private static class QuestProgressData {
