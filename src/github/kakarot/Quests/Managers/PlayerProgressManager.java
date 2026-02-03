@@ -29,11 +29,10 @@ public class PlayerProgressManager {
      * @param playerUUID The player's uuid whose progress will be loaded to cache
      */
     public void loadPlayerProgress(UUID playerUUID) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            Map<Integer, PlayerQuestProgress> progress = QuestDB.getPlayerQuests(this.plugin, playerUUID);
-            this.playerProgressMap.put(playerUUID, progress);
-            plugin.getLogger().info("Loaded quest progress for player " + Bukkit.getPlayer(playerUUID).getName() + ".\n" + progress.size() + " progressed quests loaded.");
-        });
+        plugin.getServer().getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+            Map<Integer, PlayerQuestProgress> progressMap = this.plugin.getQuestDBManager().loadAllPlayerQuests(playerUUID);
+            plugin.getQuestManager().playerProgress.put(playerUUID.toString(), progressMap);
+        }, 2L);
     }
 
     /**
@@ -43,7 +42,8 @@ public class PlayerProgressManager {
      * Safe to call on main thread
      * @param playerUUID The player's uuid whose progress will be "moved" to database
      */
-    public void savePlayerProgress(UUID playerUUID) {
+    public void savePlayerProgress(UUID playerUUID, String playerName) {
+        this.plugin.getLogger().info("Removed cache data for player " + playerName);
         this.playerProgressMap.remove(playerUUID);
     }
     public boolean playerHasRequiredItem(Player player, QuestObjective objective) {
