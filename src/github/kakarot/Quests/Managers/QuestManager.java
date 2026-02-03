@@ -19,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -27,7 +28,7 @@ public class QuestManager {
     //Quests cache loaded once on startup
     private final Map<Integer, Quest> quests = new HashMap<>();
     //Key: playerUUID, Value: map of questId -> progress ; useful for checking player progress quickly
-    private final Map<String, Map<Integer, PlayerQuestProgress>> playerProgress = new HashMap<>();
+    public final Map<String, Map<Integer, PlayerQuestProgress>> playerProgress = new HashMap<>();
     public final Map<String, List<QuestObjectiveReference>> npcObjectives = new HashMap<>();
     public final Map<String, List<QuestTurnInReference>> npcsTurnIn = new HashMap<>();
     //TODO: Collect Item objective, then "Autocomplete" feature, finally finish the DATABASE.
@@ -290,6 +291,10 @@ public class QuestManager {
             //QuestDB.addQuest(playerUUID, questId);
             // QuestDB.initializeQuestObjectives(playerUUID, questId, quest);
             // TODO: Refactor database
+            if(!plugin.getQuestDBManager().pickupQuest(playerUUID, questId, quest.getObjectiveCount())) {
+                Bukkit.getPlayer(playerUUID).sendMessage("Failed to pick up quest!");
+                return;
+            }
            if(!playerProgress.containsKey(playerUUID.toString())) {
                this.playerProgress.put(playerUUID.toString(), new HashMap<>());
            }
@@ -358,11 +363,17 @@ public class QuestManager {
         if(hasCompletedQuest(playerUUID, questId) || hasCompletedObjective(playerUUID, questId, objectiveIndex)) return; //Quest or objective already completed
         int currentProgress = progress.getObjectiveProgress()[objectiveIndex];
         int newProgress = Math.min(currentProgress + amount, objective.getRequired());
-        progress.getObjectiveProgress()[objectiveIndex] = newProgress;
+        //Run DB update before anything else
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            //QuestDB.updateObjectiveProgress(playerUUID, questId, objectiveIndex, newProgress); TODO: database call
+            if(!this.plugin.getQuestDBManager().incrementObjectiveProgress(playerUUID, questId, objectiveIndex, amount)) {
+                plugin.getLogger().severe("Could not progress objective in database for player " + playerUUID);
+                return;
+            }
+            progress.getObjectiveProgress()[objectiveIndex] = newProgress;
             if(quest.areAllObjectivesCompletes(progress.getObjectiveProgress())) {
-                if(!quest.isTurnIn()) completeQuest(playerUUID, questId);
+                if(!quest.isTurnIn()) {
+                    completeQuest(playerUUID, questId);
+                }
                 else {
                     Player player = Bukkit.getPlayer(playerUUID);
                     player.sendMessage("§aQuest completed!, go back to " + quest.getNpcTurnInDetails().getName() + " to turn in the quest!");
@@ -382,7 +393,7 @@ public class QuestManager {
         Quest quest = getQuest(questId);
         if(quest == null) return;
         PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
-        if(progress == null)  return;
+        if(progress == null) return;
         if(hasCompletedQuest(playerUUID, questId)) return;
         progress.markCompleted(getQuest(questId));
         removeQuestItems(Bukkit.getPlayer(playerUUID), questId);
@@ -430,11 +441,12 @@ public class QuestManager {
         Quest quest = getQuest(questId);
         if(quest == null) return;
         PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
-        if(progress == null)  return;
-        if(hasCompletedQuest(playerUUID, questId)) return; //Quest already completed
-//        QuestDB.completeQuest(playerUUID, questId, quest.getRepeatCooldown());
-        //progress.markCompleted(quest);
-//        if(QuestDB.getTrackedQuest(playerUUID) == questId) QuestDB.setTrackedQuest(playerUUID, -1);
+        if(progress == null) return;
+        //Update database, error if unsuccessful
+        if(!this.plugin.getQuestDBManager().completeQuest(playerUUID, questId)) {
+            this.plugin.getLogger().severe("Could not update database to complete quest " + questId + " for player " + playerUUID);
+            return;
+        }
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             executeRewards(playerUUID, quest);
             Player player = Bukkit.getPlayer(playerUUID);
