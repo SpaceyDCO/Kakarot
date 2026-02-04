@@ -83,7 +83,7 @@ public class QuestDBManager {
         }
         try {
             conn.setAutoCommit(false);
-            String updateProgress = "UPDATE player_progress " + "SET quest_status = 'IN_PROGRESS', " + "picked_up_at = ?, " + "WHERE player_uuid = ? AND quest_id = ?";
+            String updateProgress = "UPDATE player_progress " + "SET quest_status = 'IN_PROGRESS', " + "picked_up_at = ? " + "WHERE player_uuid = ? AND quest_id = ?"; //Bug here
             try(PreparedStatement statement = conn.prepareStatement(updateProgress)) {
                 statement.setLong(1, System.currentTimeMillis());
                 statement.setString(2, playerUUID.toString());
