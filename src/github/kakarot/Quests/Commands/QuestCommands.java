@@ -236,6 +236,14 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             return;
         }
         if(questManager.hasPickedUpQuest(target.getUniqueId(), questId)) {
+            //Check if quest is repeatable and player can do it again
+            if(quest.isRepeatable() && questManager.hasCompletedQuest(target.getUniqueId(), questId)) {
+                if(questManager.canRepeat(target.getUniqueId(), questId)) questManager.addQuestToPlayer(target.getUniqueId(), questId);
+                else target.sendMessage("You can't pick this quest up yet!, you have to wait " + questManager.getRemainingCooldown(target.getUniqueId(), questId));
+                return;
+            }
+            if(!quest.isRepeatable()) target.sendMessage("This quest is not repeatable.");
+            else target.sendMessage("You can't repeat this quest yet.");
             sender.sendMessage("Player already has this quest");
             return;
         }
