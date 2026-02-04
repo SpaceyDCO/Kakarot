@@ -20,6 +20,9 @@ import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -288,10 +291,12 @@ public class QuestManager {
             return;
         }
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            //QuestDB.addQuest(playerUUID, questId);
-            // QuestDB.initializeQuestObjectives(playerUUID, questId, quest);
-            // TODO: Refactor database
-            if(!plugin.getQuestDBManager().pickupQuest(playerUUID, questId, quest.getObjectiveCount())) {
+            if(hasPickedUpQuest(playerUUID, questId) && hasCompletedQuest(playerUUID, questId)) {
+                if(!plugin.getQuestDBManager().pickupRepeatableQuest(playerUUID, questId, quest.getObjectiveCount())) {
+                    Bukkit.getPlayer(playerUUID).sendMessage("Failed to pick up quest!");
+                    return;
+                }
+            }else if(!plugin.getQuestDBManager().pickupQuest(playerUUID, questId, quest.getObjectiveCount())) {
                 Bukkit.getPlayer(playerUUID).sendMessage("Failed to pick up quest!");
                 return;
             }
@@ -357,6 +362,26 @@ public class QuestManager {
             }
         }
         progressObjectiveForPlayer(progress, objective, quest, playerUUID, questId, objectiveIndex, amount);
+    }
+
+    /**
+     * Checks whether a repeatable quest can be repeated already or not
+     * @param playerUUID The player's UUID
+     * @param questId The quest ID to perform the check on
+     * @return true if cooldown has passed, false otherwise (or if no progress for this player)
+     */
+    public boolean canRepeat(UUID playerUUID, int questId) {
+        PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
+        if(progress == null) return false;
+        return progress.canRepeat();
+    }
+    public String getRemainingCooldown(UUID playerUUID, int questId) {
+        Quest quest = getQuest(questId);
+        if(!quest.isRepeatable()) return "XX:YY:ZZ";
+        PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
+        if(progress == null) return "XX:YY:ZZ";
+        long remainingTime = progress.getNextAvailable() - System.currentTimeMillis();
+        return String.valueOf(remainingTime);
     }
     //Can be called on main thread
     public void progressObjectiveForPlayer(PlayerQuestProgress progress, QuestObjective objective, Quest quest, UUID playerUUID, int questId, int objectiveIndex, int amount) {
@@ -443,7 +468,7 @@ public class QuestManager {
         PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
         if(progress == null) return;
         //Update database, error if unsuccessful
-        if(!this.plugin.getQuestDBManager().completeQuest(playerUUID, questId)) {
+        if(!this.plugin.getQuestDBManager().completeQuest(playerUUID, questId, (quest.getRepeatCooldown()+System.currentTimeMillis()))) {
             this.plugin.getLogger().severe("Could not update database to complete quest " + questId + " for player " + playerUUID);
             return;
         }
