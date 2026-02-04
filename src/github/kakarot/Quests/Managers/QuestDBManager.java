@@ -75,6 +75,54 @@ public class QuestDBManager {
             }
         }
     }
+    public boolean pickupRepeatableQuest(UUID playerUUID, int questId, int objectiveCount) {
+        Connection conn = this.dbConfig.getConnection();
+        if(conn == null) {
+            plugin.getLogger().severe("Cannot pickup repeatable quest! - database not connected");
+            return false;
+        }
+        try {
+            conn.setAutoCommit(false);
+            String updateProgress = "UPDATE player_progress " + "SET quest_status = 'IN_PROGRESS', " + "picked_up_at = ?, " + "WHERE player_uuid = ? AND quest_id = ?";
+            try(PreparedStatement statement = conn.prepareStatement(updateProgress)) {
+                statement.setLong(1, System.currentTimeMillis());
+                statement.setString(2, playerUUID.toString());
+                statement.setInt(3, questId);
+                int rowsAffected = statement.executeUpdate();
+                if(rowsAffected == 0) {
+                    plugin.getLogger().severe(String.format("Failed to update repeatable quest progress for %s (quest %d not found)", playerUUID, questId));
+                    conn.rollback();
+                    return false;
+                }
+            }
+            String resetObjectives = "UPDATE player_objective_progress SET objective_progress = 0 WHERE player_uuid = ? AND quest_id = ?";
+            try(PreparedStatement statement = conn.prepareStatement(resetObjectives)) {
+                statement.setString(1, playerUUID.toString());
+                statement.setInt(2, questId);
+                int rowsAffected = statement.executeUpdate();
+                if(rowsAffected != objectiveCount) {
+                    plugin.getLogger().severe(String.format("Expected to reset %d objectives but afected %d rows for quest %d", objectiveCount, rowsAffected, questId));
+                }
+            }
+            conn.commit();
+            plugin.getLogger().info(String.format("Player %s picked up repeatable quest %d (objectives reset to 0)", playerUUID.toString(), questId));
+            return true;
+        }catch(SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Error picking up quest for player " + playerUUID, e);
+            try {
+                conn.rollback();
+            }catch(SQLException rollbackEx) {
+                plugin.getLogger().log(Level.SEVERE, "Failed to rollback transaction!", rollbackEx);
+            }
+            return false;
+        }finally {
+            try {
+                conn.setAutoCommit(true);
+            }catch(SQLException e) {
+                plugin.getLogger().log(Level.SEVERE, "Failed to restore auto-commit!", e);
+            }
+        }
+    }
     public boolean updateObjectiveProgress(UUID playerUUID, int questId, int objectiveIndex, int newProgress) {
         Connection connection = this.dbConfig.getConnection();
         if(connection == null) {
@@ -128,7 +176,7 @@ public class QuestDBManager {
             return false;
         }
     }
-    public boolean completeQuest(UUID playerUUID, int questId) {
+    public boolean completeQuest(UUID playerUUID, int questId, long nextAvailable) {
         Connection conn = this.dbConfig.getConnection();
         if (conn == null) {
             plugin.getLogger().severe("Cannot complete quest - database not connected!");
@@ -136,13 +184,15 @@ public class QuestDBManager {
         }
         long now = System.currentTimeMillis();
         String sql = "UPDATE player_progress " + "SET quest_status = 'COMPLETED', " + "completed_at = COALESCE(completed_at, ?), " + //Only set if NULL (first completion)
-                "last_completed = ? " + //Always update last completion
+                "last_completed = ?, " + //Always update last completion
+                "next_available = ? " + //Next available timestamp
                 "WHERE player_uuid = ? AND quest_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, now); //completed_at (only if first time)
             stmt.setLong(2, now); //last_completed (always)
-            stmt.setString(3, playerUUID.toString());
-            stmt.setInt(4, questId);
+            stmt.setLong(3, nextAvailable);
+            stmt.setString(4, playerUUID.toString());
+            stmt.setInt(5, questId);
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
                 plugin.getLogger().warning(String.format("No quest found to complete: player=%s, quest=%d", playerUUID, questId));
@@ -206,52 +256,6 @@ public class QuestDBManager {
             plugin.getLogger().log(Level.SEVERE, "Error abandoning quest for " + playerUUID, e);
             return false;
         }
-    }
-    public String getQuestStatus(UUID playerUUID, int questId) {
-        Connection conn = this.dbConfig.getConnection();
-        if (conn == null) {
-            plugin.getLogger().severe("Cannot get quest status - database not connected!");
-            return null;
-        }
-        String sql = "SELECT quest_status FROM player_progress " + "WHERE player_uuid = ? AND quest_id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, playerUUID.toString());
-            stmt.setInt(2, questId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getString("quest_status");
-                }
-                return "NOT_PICKED_UP"; // No entry = not picked up yet
-            }
-        } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE,
-                    "Error getting quest status for " + playerUUID, e);
-            return null;
-        }
-    }
-    public Map<Integer, Integer> getObjectiveProgress(UUID playerUUID, int questId) {
-        Connection conn = this.dbConfig.getConnection();
-        Map<Integer, Integer> progressMap = new HashMap<>();
-        if (conn == null) {
-            plugin.getLogger().severe("Cannot get objective progress - database not connected!");
-            return progressMap;
-        }
-        String sql = "SELECT objective_index, objective_progress " + "FROM player_objective_progress " + "WHERE player_uuid = ? AND quest_id = ? " + "ORDER BY objective_index ASC";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, playerUUID.toString());
-            stmt.setInt(2, questId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    int index = rs.getInt("objective_index");
-                    int progress = rs.getInt("objective_progress");
-                    progressMap.put(index, progress);
-                }
-            }
-        } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE,
-                    "Error getting objective progress for " + playerUUID, e);
-        }
-        return progressMap;
     }
     public Map<Integer, PlayerQuestProgress> loadAllPlayerQuests(UUID playerUUID) {
         Connection conn = this.dbConfig.getConnection();
@@ -339,30 +343,6 @@ public class QuestDBManager {
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Error loading quests for player " + playerUUID, e);
             return questMap;
-        }
-    }
-    public boolean isQuestAvailable(UUID playerUUID, int questId) {
-        Connection conn = this.dbConfig.getConnection();
-        if (conn == null) {
-            plugin.getLogger().severe("Cannot check quest availability - database not connected!");
-            return false;
-        }
-        String sql = "SELECT next_available FROM player_progress " + "WHERE player_uuid = ? AND quest_id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, playerUUID.toString());
-            stmt.setInt(2, questId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    long nextAvailable = rs.getLong("next_available");
-                    long now = System.currentTimeMillis();
-                    return now >= nextAvailable; // Available if current time >= next available
-                }
-                return true; // No entry = never picked up = available
-            }
-        } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE,
-                    "Error checking quest availability for " + playerUUID, e);
-            return false;
         }
     }
     protected String getPlayerLanguage(UUID playerUUID) {
