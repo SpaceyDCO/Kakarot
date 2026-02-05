@@ -170,9 +170,10 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             return;
         }
         PlayerQuestProgress progress = questManager.getPlayerQuestProgress(player.getUniqueId(), questId);
+        String playerLocale = Main.instance.getSettingsManager().getPlayerLanguage().getOrDefault(player.getUniqueId(), "es");
         player.sendMessage("§8§m─────────────────────────────");
-        player.sendMessage("§6§l " + quest.getName("es") + " §7(#" + questId + ")");
-        player.sendMessage("§f" + quest.getDescription("es"));
+        player.sendMessage("§6§l " + quest.getName().getOrDefault(playerLocale, "Misión") + " §7(#" + questId + ")");
+        player.sendMessage("§f" + quest.getDescription().getOrDefault(playerLocale, ""));
         player.sendMessage("");
         player.sendMessage("§e§lObjectives:");
         for(int i = 0; i < quest.getObjectives().size(); i++) {
@@ -180,13 +181,28 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             int currentProgress = progress != null ? progress.getObjectiveProgress()[i] : 0;
             boolean complete = obj.isComplete(currentProgress);
             String checkmark = complete ? "§a✓" : "§7○";
+            String objMark;
+            switch(obj.getType()) {
+                case KILL_MOBS:
+                    objMark = "§c[KILL]";
+                    break;
+                case TALK_TO_NPC:
+                    objMark = "§a[TALK]";
+                    break;
+                case COLLECT_ITEMS:
+                    objMark = "§g[COLLECT]";
+                    break;
+                default:
+                    objMark = "§9[CUSTOM]";
+                    break;
+            }
             String progressText = "§7(" + currentProgress + "/" + obj.getRequired() + ")";
-            player.sendMessage(checkmark + " §f" + obj.getObjectiveInfo().getTarget() + " " + progressText);
+            player.sendMessage(checkmark + " §f" + obj.getObjectiveInfo().getTarget() + " " + progressText + " " + objMark);
         }
         player.sendMessage("");
         player.sendMessage("§a§lRewards:");
         for(QuestReward questReward : quest.getRewards()) {
-            player.sendMessage("§a+ §f" + getRewardDescription("es", questReward));
+            player.sendMessage("§a+ §f" + getRewardDescription(playerLocale, questReward));
         }
         if(quest.isRepeatable()) {
             player.sendMessage("");
@@ -278,11 +294,12 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         sender.sendMessage("§aReloaded quests from YAML");
     }
     private String getRewardDescription(String locale, QuestReward reward) {
-        return "locale " + locale + " TODO: add reward description"; //TODO: reward description
+
+        return reward.getDescription().getOrDefault(locale, "");
     }
     private String getProgressBar(int percentage) {
         int bars = 10;
-        int filled = (percentage / 100) * bars;
+        double filled = ((double) percentage / 100) * bars;
         StringBuilder bar = new StringBuilder("§a");
         for(int i = 0; i < bars; i++) {
             if(i < filled) {
