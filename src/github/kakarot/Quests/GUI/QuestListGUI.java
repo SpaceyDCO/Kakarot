@@ -9,6 +9,7 @@ import fr.minuskube.inv.content.SlotIterator;
 import github.kakarot.Main;
 import github.kakarot.Quests.Models.PlayerQuestProgress;
 import github.kakarot.Quests.Quest;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -41,13 +42,14 @@ public class QuestListGUI implements InventoryProvider {
             return;
         }
         List<ClickableItem> items = new ArrayList<>();
+        String playerLocale = Main.instance.getSettingsManager().getPlayerLanguage().getOrDefault(player.getUniqueId(), "es");
         for(Map.Entry<Integer, PlayerQuestProgress> entry : playerQuests.entrySet()) {
             int questId = entry.getKey();
             PlayerQuestProgress progress = entry.getValue();
             Quest quest = Main.instance.getQuestManager().getQuest(questId);
             if(quest == null) continue;
             items.add(ClickableItem.of(
-                    createQuestItem(quest, progress), e -> {
+                    createQuestItem(quest, progress, playerLocale), e -> {
                         if(e.getClick() == ClickType.LEFT) {
                             player.closeInventory();
                             player.performCommand("quest info " + questId);
@@ -98,7 +100,7 @@ public class QuestListGUI implements InventoryProvider {
     public void update(Player player, InventoryContents inventoryContents) {
 
     }
-    private ItemStack createQuestItem(Quest quest, PlayerQuestProgress progress) {
+    private ItemStack createQuestItem(Quest quest, PlayerQuestProgress progress, String playerLocale) {
         Material material;
         String statusColor;
         String statusText;
@@ -112,7 +114,8 @@ public class QuestListGUI implements InventoryProvider {
                 if(quest.isRepeatable() && progress.canRepeat()) {
                     material = Material.ENCHANTED_BOOK;
                     statusColor = "§a";
-                    statusText = "Can repeat";
+                    if(quest.isRepeatable() && progress.canRepeat()) statusText = "Can repeat";
+                    else statusText = "Completed";
                 }else {
                     material = Material.WRITTEN_BOOK;
                     statusColor = "§7";
@@ -126,9 +129,9 @@ public class QuestListGUI implements InventoryProvider {
         }
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("§6§l" + quest.getName("es") + " §7(#" + quest.getId() + ")");
+        meta.setDisplayName("§6§l" + quest.getName().getOrDefault(playerLocale, "Misión") + " §7(#" + quest.getId() + ")");
         List<String> lore = new ArrayList<>();
-        lore.add("§7" + quest.getDescription("es")); //TODO: language support
+        lore.add("§7" + quest.getDescription().getOrDefault(playerLocale, ""));
         lore.add("");
         lore.add(statusColor + "● " + statusText);
         int percentage = progress.getTotalProgressPercentage(quest);
@@ -149,7 +152,7 @@ public class QuestListGUI implements InventoryProvider {
     }
     private String getProgressBar(int percentage) {
         int bars = 10;
-        int filled = (percentage / 100) * bars;
+        double filled = ((double) percentage / 100) * bars;
         StringBuilder bar = new StringBuilder("§a");
         for(int i = 0; i < bars; i++) {
             if(i < filled) {
