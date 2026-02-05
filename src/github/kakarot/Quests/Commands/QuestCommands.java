@@ -190,7 +190,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
                     objMark = "§a[TALK]";
                     break;
                 case COLLECT_ITEMS:
-                    objMark = "§g[COLLECT]";
+                    objMark = "§e[COLLECT]";
                     break;
                 default:
                     objMark = "§9[CUSTOM]";
