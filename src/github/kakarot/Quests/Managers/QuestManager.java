@@ -479,12 +479,12 @@ public class QuestManager {
                 player.sendMessage("§a§l✓ Misión completada! §f" + quest.getName("es"));
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1, 1);
                 player.sendMessage("§7§m─────────────────────────────");
-//               for(QuestReward reward : quest.getRewards()) {
-//                   player.sendMessage(reward.getLocale().); //TODO: Add reading of messages
-//
-//               }
+                String playerLocale = this.plugin.getSettingsManager().getPlayerLanguage().getOrDefault(playerUUID, "es");
+               for(QuestReward reward : quest.getRewards()) {
+                   reward.getDescription().getOrDefault(playerLocale, "");
+               }
                 player.sendMessage("§7§m─────────────────────────────");
-                //TODO: quest message completion here
+                player.sendMessage(quest.getCompletionMessage().getOrDefault(playerLocale, ""));
             }
         });
     }
