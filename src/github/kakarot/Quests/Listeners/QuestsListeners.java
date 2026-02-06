@@ -40,6 +40,7 @@ public class QuestsListeners implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         this.plugin.getProgressManager().savePlayerProgress(event.getPlayer().getUniqueId(), event.getPlayer().getName());
+        this.plugin.getSettingsManager().savePlayerSettings(event.getPlayer().getUniqueId(), event.getPlayer().getName());
     }
     @EventHandler
     public void onItemPickup(PlayerPickupItemEvent event) {

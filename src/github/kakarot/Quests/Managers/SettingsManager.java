@@ -20,9 +20,14 @@ public class SettingsManager {
             this.playerLanguage.put(playerUUID, playerLanguage);
         }, 2L);
     }
+    public void savePlayerSettings(UUID playerUUID, String playerName) {
+        this.plugin.getLogger().info("Removed cache settings data for player " + playerName);
+        this.playerLanguage.remove(playerUUID);
+    }
     public void setPlayerLanguage(UUID playerUUID, String newLanguage) {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
            if(!this.plugin.getQuestDBManager().setPlayerLanguage(playerUUID, newLanguage)) plugin.getLogger().severe("Could not update language...");
+           else this.playerLanguage.put(playerUUID, newLanguage);
         });
     }
 }
