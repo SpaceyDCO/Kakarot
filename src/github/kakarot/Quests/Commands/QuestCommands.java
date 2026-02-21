@@ -1,14 +1,13 @@
 package github.kakarot.Quests.Commands;
 
+import com.spacey.kakarotmod.api.KakarotModAPI;
 import fr.minuskube.inv.SmartInvsPlugin;
 import github.kakarot.Main;
 import github.kakarot.Quests.GUI.QuestListGUI;
 import github.kakarot.Quests.Managers.QuestManager;
-import github.kakarot.Quests.Models.PlayerQuestProgress;
-import github.kakarot.Quests.Models.QuestObjective;
-import github.kakarot.Quests.Models.QuestReward;
-import github.kakarot.Quests.Models.QuestStatus;
+import github.kakarot.Quests.Models.*;
 import github.kakarot.Quests.Quest;
+import github.kakarot.Tools.HexcodeUtils;
 import lombok.NoArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
@@ -222,11 +221,38 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             return;
         }
         QuestManager questManager = Main.instance.getQuestManager();
-        if(!questManager.hasPickedUpQuest(player.getUniqueId(), questId)) {
-            player.sendMessage("§You don't have this quest");
+        Quest quest = questManager.getQuest(questId);
+        if(quest == null) {
+            player.sendMessage("§cThis quest doesn't exist");
             return;
         }
-        //TODO: Implement scoreboard tracking
+        if(!questManager.hasPickedUpQuest(player.getUniqueId(), questId)) {
+            player.sendMessage("§cYou don't have this quest");
+            return;
+        }
+        if(questManager.hasCompletedQuest(player.getUniqueId(), questId)) {
+            player.sendMessage("§cYou can't track this quest. Already completed");
+            return;
+        }
+        PlayerQuestProgress progress = questManager.getPlayerQuestProgress(player.getUniqueId(), questId);
+        int nonCompletedObjIndex = -1;
+        int objectiveCount = Math.min(quest.getObjectiveCount(), progress.getObjectiveProgress().length);
+        for(int i = 0; i < objectiveCount; i++) {
+            int objProgress = progress.getObjectiveProgress()[i];
+            if(objProgress < quest.getObjectives().get(i).getRequired()) {
+                nonCompletedObjIndex = i;
+                break;
+            }
+        }
+        if(nonCompletedObjIndex == -1) {
+            KakarotModAPI.clearQuestTarget(player.getName());
+            return;
+        }
+        QuestObjective obj = quest.getObjectives().get(nonCompletedObjIndex);
+        TrackingInfo info = obj.getTrackingInfo();
+        if(info == null) return;
+        String label = info.getLabel() + " " + progress.getObjectiveProgress()[nonCompletedObjIndex] + "/" + obj.getRequired();
+        KakarotModAPI.setQuestTarget(player.getName(), info.getX(), info.getY(), info.getZ(), label, HexcodeUtils.parseColor(info.getArrowColor()), HexcodeUtils.parseColor(info.getLabelColor()));
         player.sendMessage("§a✓ Now tracking quest #" + questIdStr);
     }
     private void untrackQuest(Player player) {
