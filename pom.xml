@@ -40,7 +40,7 @@
             <artifactId>kakarot</artifactId>
             <version>1.7.10</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/libs/kakarotmod-1.0.0.jar</systemPath>
+            <systemPath>${project.basedir}/libs/kakarotmod-1.0.1.jar</systemPath>
         </dependency>
 
         <dependency>
