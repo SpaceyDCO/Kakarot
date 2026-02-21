@@ -383,7 +383,7 @@ public class QuestManager {
         if(!quest.isRepeatable()) return "XX:YY:ZZ";
         PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
         if(progress == null) return "XX:YY:ZZ";
-        long remainingTime = progress.getNextAvailable() - System.currentTimeMillis();
+        long remainingTime = progress.getNextAvailable() - System.currentTimeMillis(); //TODO: format into something cleaner
         return String.valueOf(remainingTime);
     }
     //Can be called on main thread
@@ -515,7 +515,7 @@ public class QuestManager {
                 player.sendMessage("§7§m─────────────────────────────");
                 String playerLocale = this.plugin.getSettingsManager().getPlayerLanguage().getOrDefault(playerUUID, "es");
                for(QuestReward reward : quest.getRewards()) {
-                   reward.getDescription().getOrDefault(playerLocale, "");
+                   reward.getDescription().getOrDefault(playerLocale, "es");
                }
                 player.sendMessage("§7§m─────────────────────────────");
                 player.sendMessage(quest.getCompletionMessage().getOrDefault(playerLocale, "es"));
