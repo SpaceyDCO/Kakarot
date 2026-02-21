@@ -510,15 +510,16 @@ public class QuestManager {
             executeRewards(playerUUID, quest);
             Player player = Bukkit.getPlayer(playerUUID);
             if(player != null && player.isOnline()) {
+                KakarotModAPI.clearQuestTarget(player.getName());
                 player.sendMessage("§a§l✓ Misión completada! §f" + quest.getName("es"));
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1, 1);
                 player.sendMessage("§7§m─────────────────────────────");
                 String playerLocale = this.plugin.getSettingsManager().getPlayerLanguage().getOrDefault(playerUUID, "es");
                for(QuestReward reward : quest.getRewards()) {
-                   reward.getDescription().getOrDefault(playerLocale, "es");
+                   player.sendMessage(reward.getDescription().getOrDefault(playerLocale, ""));
                }
                 player.sendMessage("§7§m─────────────────────────────");
-                player.sendMessage(quest.getCompletionMessage().getOrDefault(playerLocale, "es"));
+                player.sendMessage(quest.getCompletionMessage().getOrDefault(playerLocale, ""));
             }
         });
     }
