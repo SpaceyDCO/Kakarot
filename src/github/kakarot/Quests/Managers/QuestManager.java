@@ -2,9 +2,11 @@ package github.kakarot.Quests.Managers;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.spacey.kakarotmod.api.KakarotModAPI;
 import github.kakarot.Main;
 import github.kakarot.Quests.Models.*;
 import github.kakarot.Quests.Quest;
+import github.kakarot.Tools.HexcodeUtils;
 import github.kakarot.Tools.NbtHandler;
 import lombok.Getter;
 import net.minecraft.nbt.NBTTagCompound;
@@ -81,6 +83,7 @@ public class QuestManager {
                     continue;
                 }
                 quests.put(questId, quest);
+                plugin.getLogger().info("Loaded quest #" + quest.getId());
                 buildReverseIndex();
             }catch(IllegalArgumentException e) {
                 plugin.getLogger().log(Level.SEVERE, "Invalid filename: " + file.getName() + " in " + file.getAbsolutePath(), e.getMessage());
@@ -303,10 +306,10 @@ public class QuestManager {
            if(!playerProgress.containsKey(playerUUID.toString())) {
                this.playerProgress.put(playerUUID.toString(), new HashMap<>());
            }
-           PlayerQuestProgress progress = new PlayerQuestProgress(playerUUID, questId, quest);
-           progress.setStatus(QuestStatus.IN_PROGRESS);
-           playerProgress.get(playerUUID.toString()).put(questId, progress);
            plugin.getServer().getScheduler().runTask(plugin, () -> {
+               PlayerQuestProgress progress = new PlayerQuestProgress(playerUUID, questId, quest);
+               progress.setStatus(QuestStatus.IN_PROGRESS);
+               playerProgress.get(playerUUID.toString()).put(questId, progress);
                Player player = Bukkit.getPlayer(playerUUID);
                if(player != null && player.isOnline()) player.sendMessage("§aMisión aceptada: §f" + quest.getName("es")); //TODO: Change to support multiple languages
            });
@@ -394,25 +397,56 @@ public class QuestManager {
                 plugin.getLogger().severe("Could not progress objective in database for player " + playerUUID);
                 return;
             }
-            progress.getObjectiveProgress()[objectiveIndex] = newProgress;
-            if(quest.areAllObjectivesCompletes(progress.getObjectiveProgress())) {
-                if(!quest.isTurnIn()) {
-                    completeQuest(playerUUID, questId);
-                }
-                else {
-                    Player player = Bukkit.getPlayer(playerUUID);
-                    player.sendMessage("§aQuest completed!, go back to " + quest.getNpcTurnInDetails().getName() + " to turn in the quest!");
-                }
-            }else {
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                progress.getObjectiveProgress()[objectiveIndex] = newProgress;
+                if(quest.areAllObjectivesCompletes(progress.getObjectiveProgress())) {
+                    if(!quest.isTurnIn()) {
+                        //Clear arrow guide instantly when completing the quest
+                        KakarotModAPI.clearQuestTarget(Bukkit.getPlayer(playerUUID).getName());
+                        completeQuest(playerUUID, questId);
+                    }
+                    else {
+                        Player player = Bukkit.getPlayer(playerUUID);
+                        player.sendMessage("§aQuest completed!, go back to " + quest.getNpcTurnInDetails().getName() + " to turn in the quest!");
+                        KakarotModAPI.clearQuestTarget(player.getName());
+                        NpcTurnInDetails details = quest.getNpcTurnInDetails();
+                        KakarotModAPI.setQuestTarget(player.getName(), details.getX(), details.getY(), details.getZ(), "Quest Completed", HexcodeUtils.parseColor(details.getArrowColor()));
+                    }
+                }else {
                     Player player = Bukkit.getPlayer(playerUUID);
                     if(player != null && player.isOnline()) {
                         int percentage = objective.getProgressCompletedAsPercentage(newProgress);
                         player.sendMessage("§7[Quest] §f" + objective.getObjectiveInfo().getTarget() + " §7(" + percentage + "%)"); //TODO: multiple languages support
+                        if(progress.getObjectiveProgress()[objectiveIndex] >= objective.getRequired()) {
+                            //Objective completed, update tracking to next objective...
+                            updateTrackingToNextObj(progress, quest, player);
+                            return;
+                        }
+                        //Objective not completed, just update tracking...
+                        TrackingInfo info = objective.getTrackingInfo();
+                        if(info == null) return;
+                        String label = info.getLabel() + " " + progress.getObjectiveProgress()[objectiveIndex] + "/" + objective.getRequired();
+                        KakarotModAPI.setQuestTarget(player.getName(), info.getX(), info.getY(), info.getZ(), label, HexcodeUtils.parseColor(info.getArrowColor()), HexcodeUtils.parseColor(info.getLabelColor()));
                     }
-                });
-            }
+                }
+            });
         });
+    }
+    private void updateTrackingToNextObj(PlayerQuestProgress progress, Quest quest, Player player) {
+        int nonCompletedObjIndex = 0;
+        int objectiveCount = Math.min(quest.getObjectiveCount(), progress.getObjectiveProgress().length);
+        for(int i = 0; i < objectiveCount; i++) {
+            int objProgress = progress.getObjectiveProgress()[i];
+            if(objProgress < quest.getObjectives().get(i).getRequired()) {
+                nonCompletedObjIndex = i;
+                break;
+            }
+        }
+        QuestObjective obj2 = quest.getObjectives().get(nonCompletedObjIndex);
+        TrackingInfo nextObjInfo = obj2.getTrackingInfo();
+        if(nextObjInfo == null) return;
+        String label = nextObjInfo.getLabel() + " " + progress.getObjectiveProgress()[nonCompletedObjIndex] + "/" + obj2.getRequired();
+        KakarotModAPI.setQuestTarget(player.getName(), nextObjInfo.getX(), nextObjInfo.getY(), nextObjInfo.getZ(), label, HexcodeUtils.parseColor(nextObjInfo.getArrowColor()), HexcodeUtils.parseColor(nextObjInfo.getLabelColor()));
     }
     public void completeQuest(UUID playerUUID, int questId) {
         Quest quest = getQuest(questId);
@@ -484,7 +518,7 @@ public class QuestManager {
                    reward.getDescription().getOrDefault(playerLocale, "");
                }
                 player.sendMessage("§7§m─────────────────────────────");
-                player.sendMessage(quest.getCompletionMessage().getOrDefault(playerLocale, ""));
+                player.sendMessage(quest.getCompletionMessage().getOrDefault(playerLocale, "es"));
             }
         });
     }
