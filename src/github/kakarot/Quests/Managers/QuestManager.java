@@ -516,10 +516,10 @@ public class QuestManager {
                 player.sendMessage("§7§m─────────────────────────────");
                 String playerLocale = this.plugin.getSettingsManager().getPlayerLanguage().getOrDefault(playerUUID, "es");
                for(QuestReward reward : quest.getRewards()) {
-                   player.sendMessage(reward.getDescription().getOrDefault(playerLocale, ""));
+                   player.sendMessage(reward.getDescription().getOrDefault(playerLocale, "").replace("&", "§"));
                }
                 player.sendMessage("§7§m─────────────────────────────");
-                player.sendMessage(quest.getCompletionMessage().getOrDefault(playerLocale, ""));
+                player.sendMessage(quest.getCompletionMessage().getOrDefault(playerLocale, "").replace("&", "§"));
             }
         });
     }
