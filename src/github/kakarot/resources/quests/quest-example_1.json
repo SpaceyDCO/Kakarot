@@ -1,22 +1,47 @@
 {
   "id": 1,
   "name": {
-    "en": "Defeat Frieza",
-    "es": "Derrota a Freezer"
+    "en": "Collect 7 Red dye and Kill 5 Frieza",
+    "es": "Busca 7 tinte rojo y derrota a Freezer 5 veces"
   },
   "description": {
-    "en": "Frieza has arrived on Earth! Defeat his Golden Form to save the planet!",
-    "es": "¡Freezer ha llegado a la Tierra! ¡Derrota su forma dorada para salvar el planeta!"
+    "en": "Collect 7 Red dye and Kill 5 Frieza",
+    "es": "Busca 7 tinte rojo y derrota a freezer 5 veces"
   },
   "objectives": [
+    {
+      "type": "COLLECT_ITEMS",
+      "objectiveInfo": {
+        "target": "351:1",
+        "title": ""
+      },
+      "trackingInfo": {
+        "x": 623,
+        "y": 67,
+        "z": -56,
+        "label": "",
+        "arrowColor": "light_blue@0.75",
+        "labelColor": "white"
+      },
+      "required": 7,
+      "shareable": false
+    },
     {
       "type": "KILL_MOBS",
       "objectiveInfo": {
         "target": "Frieza",
-        "title": "Golden Form"
+        "title": ""
       },
-      "required": 1,
-      "shareable": true
+      "trackingInfo": {
+        "x": 608,
+        "y": 67,
+        "z": -54,
+        "label": "Defeat Frieza",
+        "arrowColor": "red@0.6",
+        "labelColor": "white"
+      },
+      "required": 5,
+      "shareable": false
     }
   ],
   "rewards": [
@@ -24,23 +49,24 @@
       "type": "COMMAND",
       "value": "give {player} diamond 64",
       "description": {
-        "en": "64 Diamonds",
-        "es": "64 Diamantes"
-      }
-    },
-    {
-      "type": "COMMAND",
-      "value": "xp add {player} 100 levels",
-      "description": {
-        "en": "100 XP Levels",
-        "es": "100 Niveles de XP"
+        "en": "+ 64 Diamonds",
+        "es": "+ 64 Diamantes"
       }
     }
   ],
-  "completionMessages": {
-    "en": "You defeated Frieza! Earth is saved!",
-    "es": "¡Has derrotado a Freezer! ¡La Tierra está a salvo!"
+  "completionMessage": {
+    "en": "Bulma thanks you for the Dragon Balls!",
+    "es": "¡Bulma te agradece por las Esferas del Dragón!"
   },
   "repeatable": false,
-  "repeatCooldown": 0
+  "repeatCooldown": 0,
+  "turnIn": true,
+  "npcTurnInDetails": {
+    "name": "Bulma",
+    "title": "",
+    "x": 612,
+    "y": 67,
+    "z": -51,
+    "arrowColor": "green@0.75"
+  }
 }
