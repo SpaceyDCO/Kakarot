@@ -82,6 +82,14 @@ public class HexcodeUtils {
                 return 0xFF55AAFF;
             case "light_blue":
                 return 0xBF80CCFF;
+            case "green":
+                return 0xFF55AA55;
+            case "light_green":
+                return 0xBF77CC77;
+            case "orange":
+                return 0xFFFF8833;
+            case "light_orange":
+                return 0xBFFFAA55;
             default:
                 throw new IllegalArgumentException("Unknown color name: " + name);
         }
