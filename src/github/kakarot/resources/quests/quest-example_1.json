@@ -19,7 +19,10 @@
         "x": 623,
         "y": 67,
         "z": -56,
-        "label": "",
+        "label": {
+          "en": "Collect red dye %current_progress%/%required%",
+          "es": "Consigue tinte rojo %current_progress%/%required%"
+        },
         "arrowColor": "light_blue@0.75",
         "labelColor": "white"
       },
@@ -36,11 +39,14 @@
         "x": 608,
         "y": 67,
         "z": -54,
-        "label": "Defeat Frieza",
+        "label": {
+          "en": "Defeat Frieza %current_progress%/%required%",
+          "es": "Derrota a Freezer %current_progress%/%required%"
+        },
         "arrowColor": "red@0.6",
         "labelColor": "white"
       },
-      "required": 5,
+      "required": 1,
       "shareable": false
     }
   ],
