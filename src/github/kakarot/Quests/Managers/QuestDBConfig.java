@@ -17,12 +17,16 @@ public class QuestDBConfig {
     private final String databasePath;
     public QuestDBConfig(Main plugin) {
         this.plugin = plugin;
-        this.databasePath = plugin.getDataFolder().getAbsolutePath() + File.separator + "quests.db";
+        this.databasePath = plugin.getDataFolder().getAbsolutePath() + File.separator + "quests/quests.db";
     }
     public boolean initialize() {
         try {
             if(!plugin.getDataFolder().exists()) {
                 if(plugin.getDataFolder().mkdirs()) plugin.getLogger().info("Created data folder: " + plugin.getDataFolder().getAbsolutePath());
+            }
+            File questsFolder = new File(plugin.getDataFolder(), "quests");
+            if(!questsFolder.exists()) {
+                if(questsFolder.mkdirs()) plugin.getLogger().info("Created data folder: " + questsFolder.getName());
             }
             Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection("jdbc:sqlite:" + databasePath);
