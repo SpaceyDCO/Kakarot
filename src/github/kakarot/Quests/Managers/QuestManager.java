@@ -409,7 +409,7 @@ public class QuestManager {
                     }
                     else {
                         Player player = Bukkit.getPlayer(playerUUID);
-                        player.sendMessage("§aQuest completed!, go back to " + quest.getNpcTurnInDetails().getName() + " to turn in the quest!");
+                        player.sendMessage("§aQuest completed!, go back to " + quest.getNpcTurnInDetails().getName() + " to turn in the quest!"); //TODO: language support
                         NpcTurnInDetails details = quest.getNpcTurnInDetails();
                         KakarotModAPI.setQuestTarget(player.getName(), details.getX(), details.getY(), details.getZ(), "Quest Completed", HexcodeUtils.parseColor(details.getArrowColor()));
                     }
@@ -417,7 +417,7 @@ public class QuestManager {
                     Player player = Bukkit.getPlayer(playerUUID);
                     if(player != null && player.isOnline()) {
                         int percentage = objective.getProgressCompletedAsPercentage(newProgress);
-                        player.sendMessage("§7[Quest] §f" + objective.getObjectiveInfo().getTarget() + " §7(" + percentage + "%)"); //TODO: multiple languages support
+                        player.sendMessage("§7[Quest] §f" + objective.getObjectiveInfo().getTarget() + " §7(" + percentage + "%)");
                         if(progress.getObjectiveProgress()[objectiveIndex] >= objective.getRequired()) {
                             //Objective completed, update tracking to next objective...
                             updateTrackingToNextObj(progress, quest, player);
@@ -516,10 +516,21 @@ public class QuestManager {
             Player player = Bukkit.getPlayer(playerUUID);
             if(player != null && player.isOnline()) {
                 KakarotModAPI.clearQuestTarget(player.getName());
-                player.sendMessage("§a§l✓ Misión completada! §f" + quest.getName("es"));
+                String playerLocale = this.plugin.getSettingsManager().getPlayerLanguage().getOrDefault(playerUUID, "es");
+                String title = quest.getTitleInfo().getTitle().getOrDefault(playerLocale, "");
+                title = title.replace("%quest_name%", quest.getName(playerLocale));
+                String subtitle = quest.getTitleInfo().getSubtitle().getOrDefault(playerLocale, "");
+                subtitle = subtitle.replace("%quest_name%", quest.getName(playerLocale));
+                KakarotModAPI.displayTitle(
+                        player.getName(),
+                        title,
+                        subtitle,
+                        quest.getTitleInfo().getDisplayTime(),
+                        quest.getTitleInfo().getFadeoutTime(),
+                        HexcodeUtils.parseColor(quest.getTitleInfo().getTitleColor()),
+                        HexcodeUtils.parseColor(quest.getTitleInfo().getSubtitleColor()));
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1, 1);
                 player.sendMessage("§7§m─────────────────────────────");
-                String playerLocale = this.plugin.getSettingsManager().getPlayerLanguage().getOrDefault(playerUUID, "es");
                for(QuestReward reward : quest.getRewards()) {
                    player.sendMessage(reward.getDescription().getOrDefault(playerLocale, "").replace("&", "§"));
                }
