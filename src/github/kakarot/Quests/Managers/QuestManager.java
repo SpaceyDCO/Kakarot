@@ -89,6 +89,8 @@ public class QuestManager {
                 plugin.getLogger().log(Level.SEVERE, "Invalid filename: " + file.getName() + " in " + file.getAbsolutePath(), e.getMessage());
             }catch(FileNotFoundException e) {
                 plugin.getLogger().log(Level.SEVERE, "File not found OR failed to load: " + file.getName(), e);
+            }catch(Exception e) {
+                plugin.getLogger().log(Level.SEVERE, "Could not load quest " + file.getName() + "...", e);
             }
         }
     }
@@ -408,7 +410,6 @@ public class QuestManager {
                     else {
                         Player player = Bukkit.getPlayer(playerUUID);
                         player.sendMessage("§aQuest completed!, go back to " + quest.getNpcTurnInDetails().getName() + " to turn in the quest!");
-                        KakarotModAPI.clearQuestTarget(player.getName());
                         NpcTurnInDetails details = quest.getNpcTurnInDetails();
                         KakarotModAPI.setQuestTarget(player.getName(), details.getX(), details.getY(), details.getZ(), "Quest Completed", HexcodeUtils.parseColor(details.getArrowColor()));
                     }
@@ -425,7 +426,9 @@ public class QuestManager {
                         //Objective not completed, just update tracking...
                         TrackingInfo info = objective.getTrackingInfo();
                         if(info == null) return;
-                        String label = info.getLabel() + " " + progress.getObjectiveProgress()[objectiveIndex] + "/" + objective.getRequired();
+                        String playerLocale = plugin.getSettingsManager().getPlayerLanguage().getOrDefault(player.getUniqueId(), "es");
+                        String label = info.getLabel().getOrDefault(playerLocale, "");
+                        label = label.replace("%current_progress%", String.valueOf(progress.getObjectiveProgress()[objectiveIndex])).replace("%required%", String.valueOf(objective.getRequired()));
                         KakarotModAPI.setQuestTarget(player.getName(), info.getX(), info.getY(), info.getZ(), label, HexcodeUtils.parseColor(info.getArrowColor()), HexcodeUtils.parseColor(info.getLabelColor()));
                     }
                 }
@@ -445,7 +448,9 @@ public class QuestManager {
         QuestObjective obj2 = quest.getObjectives().get(nonCompletedObjIndex);
         TrackingInfo nextObjInfo = obj2.getTrackingInfo();
         if(nextObjInfo == null) return;
-        String label = nextObjInfo.getLabel() + " " + progress.getObjectiveProgress()[nonCompletedObjIndex] + "/" + obj2.getRequired();
+        String playerLocale = plugin.getSettingsManager().getPlayerLanguage().getOrDefault(player.getUniqueId(), "es");
+        String label = nextObjInfo.getLabel().getOrDefault(playerLocale, "");
+        label = label.replace("%current_progress%", String.valueOf(progress.getObjectiveProgress()[nonCompletedObjIndex])).replace("%required%", String.valueOf(obj2.getRequired()));
         KakarotModAPI.setQuestTarget(player.getName(), nextObjInfo.getX(), nextObjInfo.getY(), nextObjInfo.getZ(), label, HexcodeUtils.parseColor(nextObjInfo.getArrowColor()), HexcodeUtils.parseColor(nextObjInfo.getLabelColor()));
     }
     public void completeQuest(UUID playerUUID, int questId) {

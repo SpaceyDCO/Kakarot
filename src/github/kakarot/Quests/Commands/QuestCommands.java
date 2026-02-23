@@ -251,7 +251,9 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         QuestObjective obj = quest.getObjectives().get(nonCompletedObjIndex);
         TrackingInfo info = obj.getTrackingInfo();
         if(info == null) return;
-        String label = info.getLabel() + " " + progress.getObjectiveProgress()[nonCompletedObjIndex] + "/" + obj.getRequired();
+        String playerLocale = Main.instance.getSettingsManager().getPlayerLanguage().getOrDefault(player.getUniqueId(), "es");
+        String label = info.getLabel().getOrDefault(playerLocale, "");
+        label = label.replace("%current_progress%", String.valueOf(progress.getObjectiveProgress()[nonCompletedObjIndex])).replace("%required%", String.valueOf(obj.getRequired()));
         KakarotModAPI.setQuestTarget(player.getName(), info.getX(), info.getY(), info.getZ(), label, HexcodeUtils.parseColor(info.getArrowColor()), HexcodeUtils.parseColor(info.getLabelColor()));
         player.sendMessage("§a✓ Now tracking quest #" + questIdStr);
     }
