@@ -64,6 +64,20 @@
     "en": "Bulma thanks you for the Dragon Balls!",
     "es": "¡Bulma te agradece por las Esferas del Dragón!"
   },
+  "titleInfo": {
+    "title": {
+      "en": "Quest completed",
+      "es": "Misión completada"
+    },
+    "subtitle": {
+      "en": "%quest_name%",
+      "es": "%quest_name%"
+    },
+    "titleColor": "green",
+    "subtitleColor": "white",
+    "displayTime": 10,
+    "fadeoutTime": 2
+  },
   "repeatable": false,
   "repeatCooldown": 0,
   "turnIn": true,
