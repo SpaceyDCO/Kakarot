@@ -3,6 +3,7 @@ package github.kakarot.Quests;
 import github.kakarot.Quests.Models.NpcTurnInDetails;
 import github.kakarot.Quests.Models.QuestObjective;
 import github.kakarot.Quests.Models.QuestReward;
+import github.kakarot.Quests.Models.TitleInfo;
 import lombok.Getter;
 
 import java.util.List;
@@ -16,11 +17,12 @@ public class Quest {
     private final List<QuestObjective> objectives;
     private final List<QuestReward> rewards;
     private final Map<String, String> completionMessage;
+    private final TitleInfo titleInfo;
     private final boolean repeatable;
     private final long repeatCooldown;
     private final boolean turnIn;
     private NpcTurnInDetails npcTurnInDetails;
-    public Quest(int id, Map<String, String> name, Map<String, String> description, List<QuestObjective> objectives, List<QuestReward> rewards, Map<String, String> completionMessage, boolean repeatable, long repeatCooldown, boolean turnIn, NpcTurnInDetails details) {
+    public Quest(int id, Map<String, String> name, Map<String, String> description, List<QuestObjective> objectives, List<QuestReward> rewards, Map<String, String> completionMessage, boolean repeatable, long repeatCooldown, boolean turnIn, NpcTurnInDetails details, TitleInfo info) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -32,6 +34,7 @@ public class Quest {
         this.turnIn = turnIn;
         if(turnIn) this.npcTurnInDetails = details;
         else npcTurnInDetails = null;
+        this.titleInfo = info;
     }
     public Quest(int id, Map<String, String> name, Map<String, String> description, List<QuestObjective> objectives, List<QuestReward> rewards, Map<String, String> completionMessage, boolean repeatable, long repeatCooldown) {
         this.id = id;
@@ -43,6 +46,7 @@ public class Quest {
         this.repeatable = repeatable;
         this.repeatCooldown = repeatCooldown;
         this.turnIn = false;
+        this.titleInfo = null;
     }
     public String getName(String locale) {
         return this.name.getOrDefault(locale, this.name.getOrDefault("es", "Misión inexistente"));
