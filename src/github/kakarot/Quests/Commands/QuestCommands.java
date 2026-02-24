@@ -14,6 +14,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class QuestCommands implements CommandExecutor, TabCompleter {
     @Override
-    public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String alias, String[] args) { //TODO: "Requeriments" for objectives (can't be completed before finishing the others)
+    public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String alias, String[] args) {
         String AVAILABLE_COMMANDS = "list, info, track, untrack, add, complete, debug";
         if(args.length > 0 && sender.hasPermission("kakarot.quest.admin")) {
             String subcommand = args[0].toLowerCase();
@@ -66,14 +67,15 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             return true;
         }
         String subCommand = args[0].toLowerCase();
+        QuestManager questManager = Main.instance.getQuestManager();
         switch(subCommand) {
             case "language":
                 if(args.length < 2) {
-                    player.sendMessage("§cUsage: /quest language <new language>\nValues: 'es', 'en'");
+                    player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.correct_usage", "%usage%", "/quest language <en, es> "));
                     return true;
                 }
                 if(!args[1].equalsIgnoreCase("en") && !args[1].equalsIgnoreCase("es")) {
-                    player.sendMessage("§cValues: 'es', 'en'");
+                    player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.invalid-language"));
                     return true;
                 }
                 String newLanguage = args[1].toLowerCase();
@@ -84,14 +86,14 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
                 break;
             case "info":
                 if(args.length < 2) {
-                    player.sendMessage("§cUsage: /quest info <quest_id>");
+                    player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.correct_usage", "%usage%", "/quest info <quest_id>"));
                     return true;
                 }
                 showQuestInfo(player, args[1]);
                 break;
             case "track":
                 if(args.length < 2) {
-                    player.sendMessage("§cUsage: /quest track <quest_id>");
+                    player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.correct_usage", "%usage%", "/quest track <quest_id>"));
                     return true;
                 }
                 trackQuest(player, args[1]);
@@ -100,72 +102,71 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
                 untrackQuest(player);
                 break;
             default:
-                player.sendMessage("§Unknown subcommand: " + subCommand);
-                player.sendMessage("§aAvailable: " + AVAILABLE_COMMANDS);
+                player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.unknown-command", "%command%", subCommand));
         }
         return true;
     }
     private void showQuestList(Player player) {
         QuestListGUI.INVENTORY.open(player);
-        player.sendMessage("§aOpening up quests GUI...");
+        player.sendMessage(Main.instance.getQuestManager().getLangMessage(player.getUniqueId(), "commands.opening-gui"));
     }
-    private void showQuestListText(Player player) {
+//    private void showQuestListText(Player player) {
+//        QuestManager questManager = Main.instance.getQuestManager();
+//        Map<Integer, PlayerQuestProgress> playerQuests = questManager.getPlayerQuests(player.getUniqueId());
+//        if(playerQuests.isEmpty()) {
+//            player.sendMessage("§cYou don't have any quests yet.");
+//            return;
+//        }
+//        player.sendMessage("§8§m─────────────────────────────");
+//        for(Map.Entry<Integer, PlayerQuestProgress> entry : playerQuests.entrySet()) {
+//            int questId = entry.getKey();
+//            PlayerQuestProgress progress = entry.getValue();
+//            Quest quest = questManager.getQuest(questId);
+//            if(quest == null) return;
+//            String statusColor;
+//            String statusText;
+//            switch(progress.getStatus()) {
+//                case IN_PROGRESS:
+//                    statusColor = "§e";
+//                    statusText = "In Progress";
+//                    break;
+//                case COMPLETED:
+//                    if(quest.isRepeatable() && progress.canRepeat()) {
+//                        statusColor = "§a";
+//                        statusText = "Can repeat";
+//                    }else {
+//                        statusColor = "§7";
+//                        statusText = "Completed";
+//                    }
+//                    break;
+//                default:
+//                    statusColor = "§c";
+//                    statusText = "Unknown";
+//            }
+//            int percentage = progress.getTotalProgressPercentage(quest);
+//            String progressBar = getProgressBar(percentage);
+//            player.sendMessage("§f#" + questId + " §7- §f" + quest.getName("es"));
+//            player.sendMessage(statusColor + "● " + statusText + " §7" + progressBar);
+//        }
+//        player.sendMessage("§8§m─────────────────────────────");
+//        player.sendMessage("§7Use §f/quest info <id> §7for details");
+//    }
+    private void showQuestInfo(Player player, String questIdStr) {//TODO: better quest info (show skull if kill, book if interact and so on)
         QuestManager questManager = Main.instance.getQuestManager();
-        Map<Integer, PlayerQuestProgress> playerQuests = questManager.getPlayerQuests(player.getUniqueId());
-        if(playerQuests.isEmpty()) {
-            player.sendMessage("§cYou don't have any quests yet.");
-            return;
-        }
-        player.sendMessage("§8§m─────────────────────────────");
-        for(Map.Entry<Integer, PlayerQuestProgress> entry : playerQuests.entrySet()) {
-            int questId = entry.getKey();
-            PlayerQuestProgress progress = entry.getValue();
-            Quest quest = questManager.getQuest(questId);
-            if(quest == null) return;
-            String statusColor;
-            String statusText;
-            switch(progress.getStatus()) {
-                case IN_PROGRESS:
-                    statusColor = "§e";
-                    statusText = "In Progress";
-                    break;
-                case COMPLETED:
-                    if(quest.isRepeatable() && progress.canRepeat()) {
-                        statusColor = "§a";
-                        statusText = "Can repeat";
-                    }else {
-                        statusColor = "§7";
-                        statusText = "Completed";
-                    }
-                    break;
-                default:
-                    statusColor = "§c";
-                    statusText = "Unknown";
-            }
-            int percentage = progress.getTotalProgressPercentage(quest);
-            String progressBar = getProgressBar(percentage);
-            player.sendMessage("§f#" + questId + " §7- §f" + quest.getName("es"));
-            player.sendMessage(statusColor + "● " + statusText + " §7" + progressBar);
-        }
-        player.sendMessage("§8§m─────────────────────────────");
-        player.sendMessage("§7Use §f/quest info <id> §7for details");
-    }
-    private void showQuestInfo(Player player, String questIdStr) { //TODO: better quest info (show skull if kill, book if interact and so on)
         int questId;
         try {
             questId = Integer.parseInt(questIdStr);
         }catch(NumberFormatException e) {
-            player.sendMessage("§cInvalid quest ID");
+            player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.invalid-id"));
             return;
         }
-        QuestManager questManager = Main.instance.getQuestManager();
         Quest quest = questManager.getQuest(questId);
         if(quest == null) {
-            player.sendMessage("§cQuest #" + questId + " not found!");
+            player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.invalid-id"));
             return;
         }
         if(!questManager.hasPickedUpQuest(player.getUniqueId(), questId) && !player.hasPermission("kakarot.quest.admin")) {
-            player.sendMessage("§cYou can't see information for Quest #" + questIdStr + ". §cAccept it first!");
+            player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.no-info-allowed"));
             return;
         }
         PlayerQuestProgress progress = questManager.getPlayerQuestProgress(player.getUniqueId(), questId);
@@ -181,57 +182,63 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             boolean complete = obj.isComplete(currentProgress);
             String checkmark = complete ? "§a✓" : "§7○";
             String objMark;
+            String target;
             switch(obj.getType()) {
                 case KILL_MOBS:
-                    objMark = "§c[KILL]";
+                    objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-kill");
+                    target = obj.getObjectiveInfo().getTarget();
                     break;
                 case TALK_TO_NPC:
-                    objMark = "§a[TALK]";
+                    objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-talk");
+                    target = obj.getObjectiveInfo().getTarget();
                     break;
                 case COLLECT_ITEMS:
-                    objMark = "§e[COLLECT]";
+                    objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-collect");
+                    ItemStack item = new ItemStack(obj.getObjectiveInfo().getItemId(), 1, (short) 1, obj.getObjectiveInfo().getDataValue());
+                    target = item.toString();
                     break;
                 default:
-                    objMark = "§9[CUSTOM]";
+                    objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-custom");
+                    target = obj.getObjectiveInfo().getTarget();
                     break;
             }
             String progressText = "§7(" + currentProgress + "/" + obj.getRequired() + ")";
-            player.sendMessage(checkmark + " §f" + obj.getObjectiveInfo().getTarget() + " " + progressText + " " + objMark);
+            player.sendMessage(checkmark + " §f" + target + " " + progressText + " " + objMark);
         }
         player.sendMessage("");
-        player.sendMessage("§a§lRewards:");
+        player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.info-rewards"));
         for(QuestReward questReward : quest.getRewards()) {
             player.sendMessage("§a+ §f" + getRewardDescription(playerLocale, questReward));
         }
         if(quest.isRepeatable()) {
             player.sendMessage("");
-            player.sendMessage("§7Repeatable every §f" + formatCooldown(quest.getRepeatCooldown()));
+            player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.info-cooldown", "%cooldown%", formatCooldown(quest.getRepeatCooldown())));
         }
         player.sendMessage("§8§m─────────────────────────────");
         if(progress != null && progress.getStatus() == QuestStatus.IN_PROGRESS) {
-            player.sendMessage("§7Use §f/quest track " + questIdStr + " §7to track this quest");
+            player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.info-track-suggestion"));
         }
     }
     private void trackQuest(Player player, String questIdStr) {
+        QuestManager questManager = Main.instance.getQuestManager();
         int questId;
         try {
             questId = Integer.parseInt(questIdStr);
         }catch(NumberFormatException e) {
-            player.sendMessage("§cInvalid quest ID");
+            player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.invalid-id"));
             return;
         }
-        QuestManager questManager = Main.instance.getQuestManager();
         Quest quest = questManager.getQuest(questId);
         if(quest == null) {
-            player.sendMessage("§cThis quest doesn't exist");
+            player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.invalid-id"));
             return;
         }
         if(!questManager.hasPickedUpQuest(player.getUniqueId(), questId)) {
-            player.sendMessage("§cYou don't have this quest");
+            player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.cant_track"));
             return;
         }
         if(questManager.hasCompletedQuest(player.getUniqueId(), questId)) {
-            player.sendMessage("§cYou can't track this quest. Already completed");
+            player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.already_completed"));
             return;
         }
         PlayerQuestProgress progress = questManager.getPlayerQuestProgress(player.getUniqueId(), questId);
@@ -255,13 +262,16 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         String label = info.getLabel().getOrDefault(playerLocale, "");
         label = label.replace("%current_progress%", String.valueOf(progress.getObjectiveProgress()[nonCompletedObjIndex])).replace("%required%", String.valueOf(obj.getRequired()));
         KakarotModAPI.setQuestTarget(player.getName(), info.getX(), info.getY(), info.getZ(), label, HexcodeUtils.parseColor(info.getArrowColor()), HexcodeUtils.parseColor(info.getLabelColor()));
-        player.sendMessage("§a✓ Now tracking quest #" + questIdStr);
+        String trackingMsg = questManager.getLangMessage(player.getUniqueId(), "commands.now_tracking", "%quest_name%", quest.getName(playerLocale));
+        player.sendMessage(trackingMsg);
     }
     private void untrackQuest(Player player) {
-        player.sendMessage("§a✓ Stopped tracking quest");
+        //TODO: add functionality
+        player.sendMessage(Main.instance.getQuestManager().getLangMessage(player.getUniqueId(), "commands.stop_tracking"));
     }
     private void addQuestToPlayer(CommandSender sender, String playerName, String questIdStr) {
         Player target = Bukkit.getPlayer(playerName);
+        QuestManager questManager = Main.instance.getQuestManager();
         if(target == null || !target.isOnline()) {
             sender.sendMessage("§cPlayer not found: " + playerName);
             return;
@@ -273,7 +283,6 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             sender.sendMessage("§cInvalid quest ID");
             return;
         }
-        QuestManager questManager = Main.instance.getQuestManager();
         Quest quest = questManager.getQuest(questId);
         if(quest == null) {
             sender.sendMessage("§cQuest #" + questIdStr + " not found");
@@ -283,11 +292,11 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             //Check if quest is repeatable and player can do it again
             if(quest.isRepeatable() && questManager.hasCompletedQuest(target.getUniqueId(), questId)) {
                 if(questManager.canRepeat(target.getUniqueId(), questId)) questManager.addQuestToPlayer(target.getUniqueId(), questId);
-                else target.sendMessage("You can't pick this quest up yet!, you have to wait " + questManager.getRemainingCooldown(target.getUniqueId(), questId));
+                else target.sendMessage(questManager.getLangMessage(target.getUniqueId(), "manager.on_cooldown", "%time%", questManager.getRemainingCooldown(target.getUniqueId(), questId)));
                 return;
             }
-            if(!quest.isRepeatable()) target.sendMessage("This quest is not repeatable.");
-            else target.sendMessage("You can't repeat this quest yet.");
+            if(!quest.isRepeatable()) target.sendMessage(questManager.getLangMessage(target.getUniqueId(), "commands.not-repeatable"));
+            else target.sendMessage(questManager.getLangMessage(target.getUniqueId(), "commands.not-repeatable-yet"));
             sender.sendMessage("Player already has this quest");
             return;
         }
@@ -405,6 +414,6 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
     }
     private void handleSetLanguageCommand(Player player, String newLanguage) {
         Main.instance.getSettingsManager().setPlayerLanguage(player.getUniqueId(), newLanguage);
-        player.sendMessage("§aLanguage changed to " + newLanguage + " correctly");
+        player.sendMessage(Main.instance.getQuestManager().getLangMessage(player.getUniqueId(), "commands.language-set", newLanguage));
     }
 }
