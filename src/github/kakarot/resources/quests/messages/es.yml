@@ -1,0 +1,49 @@
+#Commands
+commands:
+  invalid-id: "&cID de misión inválida"
+  no-info-allowed: "&cNo puedes ver información acerca de una misión no aceptada."
+  info-objectives: "&e&lObjetivos:"
+  #El siguiente texto es utilizado al ejecutar el comando /quest info <id>
+  #Se usa para informarle a los jugadores qué tipo de objetivo es
+  info-objective-kill: "&c[DERROTAR]"
+  info-objective-talk: "&a[HABLAR]"
+  info-objective-collect: "&e[CONSEGUIR]"
+  info-objective-custom: "&9[PERSONALIZADO]"
+  info-rewards: "&a&lRecompensas:"
+  #PLACEHOLDER: %cooldown%
+  #Reemplazado por el tiempo de enfriamiento de la mision (solo se muestra si es repetible)
+  info-cooldown: "&7Repetible cada %cooldown%"
+  info-track-suggestion: "&7Use /quest track %quest_id% para monitorear esta misión."
+  cant_track: "&cNo puedes rastrear esta misión en este momento."
+  already_completed: "&cNo se puede rastrear esta misión porque ya fue completada."
+  now_tracking: "&a✓ Monitoreando misión: %quest_name%"
+  stop_tracking: "&a✓ Limpiando monitoreo de misión..."
+  not-repeatable: "&cEsta misión no es repetible."
+  not-repeatable-yet: "&cAún no puedes repetir esta misión."
+  invalid-language: "&cLenguaje inválido, por favor usa uno correcto."
+  correct_usage: "&eUso correcto: &c%usage%"
+  no_permission: "&cNo tienes permiso para hacer esto."
+  unknown-command: "&cComando desconocido: %command%."
+  language-set: "&aLenguaje cambiado a %new_language% correctamente."
+  opening-gui: "&aMostrando menú de misiones..."
+
+#Quest Manager Events
+manager:
+  db_error: "&cError al interactuar con la base de datos de misiones. Contacta a un administrador."
+  already_have: "&c¡Ya has aceptado esta misión!"
+  #PLACEHOLDER: %quest_name%
+  #Se sustituye por el nombre de la misión, sea en inglés o español dependiendo de la configuración del usuario
+  quest_accepted: "&a&lMisión Aceptada: &f%quest_name%"
+  #PLACEHOLDER: %npc_name%
+  #Será sustituido por el nombre del NPC donde se entrega la misión
+  turn_in_ready: "&e¡Misión completada! Regresa con &b%npc_name% &epara reclamar tu recompensa."
+  on_cooldown: "&cEsta misión está en tiempo de espera. Disponible en: &e%time%"
+
+#GUI Elements
+gui:
+  next_page: "&eSiguiente Página"
+  previous_page: "&ePágina Anterior"
+  close: "&cCerrar Menú"
+  status_in_progress: "&eEn Progreso"
+  status_completed: "&aCompletada"
+  status_available: "&bDisponible"
