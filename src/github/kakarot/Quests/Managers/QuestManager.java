@@ -7,12 +7,14 @@ import github.kakarot.Main;
 import github.kakarot.Quests.Models.*;
 import github.kakarot.Quests.Quest;
 import github.kakarot.Tools.HexcodeUtils;
-import github.kakarot.Tools.NbtHandler;
 import lombok.Getter;
 import net.minecraft.nbt.NBTTagCompound;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -21,10 +23,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.sql.SQLException;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -36,8 +34,8 @@ public class QuestManager {
     public final Map<String, Map<Integer, PlayerQuestProgress>> playerProgress = new HashMap<>();
     public final Map<String, List<QuestObjectiveReference>> npcObjectives = new HashMap<>();
     public final Map<String, List<QuestTurnInReference>> npcsTurnIn = new HashMap<>();
-    //TODO: Collect Item objective, then "Autocomplete" feature, finally finish the DATABASE.
-    // After those, Quest tracking and Quest GUI for admins
+    //Key: language code like "en", "es", Value: map with key message_id (like command.error)
+    public final Map<String, Map<String, String>> localizedMessages = new HashMap<>();
     public QuestManager(Main plugin) {
         this.plugin = plugin;
     }
@@ -48,6 +46,7 @@ public class QuestManager {
     public void initialize() {
         plugin.getLogger().info("Initializing quest manager...");
         loadQuests();
+        loadMessages();
         plugin.getLogger().info("Loaded " + quests.size() + " quests");
     }
 
@@ -57,6 +56,7 @@ public class QuestManager {
     public void reloadQuests() {
         quests.clear();
         loadQuests();
+        loadMessages();
         plugin.getLogger().info("Reloaded quests!");
     }
     private void loadQuests() {
@@ -93,6 +93,74 @@ public class QuestManager {
                 plugin.getLogger().log(Level.SEVERE, "Could not load quest " + file.getName() + "...", e);
             }
         }
+    }
+    private void loadMessages() {
+        File dataFolder = new File(plugin.getDataFolder(), "quests/messages");
+        if(!dataFolder.exists()) {
+            if(dataFolder.mkdirs()) {
+                createDefaultLanguages(new File(dataFolder, "es.yml"));
+                //TODO: add english messages too
+            }
+            else {
+                plugin.getLogger().severe("Could not create quest message data folder in " + dataFolder.getAbsolutePath());
+                return;
+            }
+        }
+        File[] messageFiles = dataFolder.listFiles((dir, name) -> name.endsWith(".yml"));
+        if(messageFiles == null || messageFiles.length == 0) {
+            plugin.getLogger().warning("No messages found in quests/messages");
+            return;
+        }
+        for(File messages : messageFiles) {
+            try {
+                String langCode = messages.getName().replace(".yml", "").toLowerCase();
+                FileConfiguration config = YamlConfiguration.loadConfiguration(messages);
+                Map<String, String> translations = new HashMap<>();
+                for(String key : config.getKeys(true)) {
+                    if(!config.isConfigurationSection(key)) {
+                        String translatedText = config.getString(key);
+                        if(translatedText != null) {
+                            translatedText = ChatColor.translateAlternateColorCodes('&', translatedText);
+                            translations.put(key, translatedText);
+                        }
+                    }
+                }
+                localizedMessages.put(langCode, translations);
+                plugin.getLogger().info("Loaded " + translations.size() + " messages for language: " + langCode);
+            }catch(Exception e) {
+                plugin.getLogger().log(Level.SEVERE, "There was an error trying to load messages from file " + messages.getName(), e);
+            }
+        }
+    }
+    private void createDefaultLanguages(File destination) {
+        try {
+            if(!destination.exists()) {
+                Files.copy(plugin.getResource("quests/messages/es.yml"), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                plugin.getLogger().info("Created default config: " + destination.getName());
+            }
+        }catch(Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "Could not save default resource: " + "quests/messages/es.yml", e);
+        }
+    }
+    public String getLangMessage(UUID playerUUID, String messageKey, String... placeholders) {
+        String lang = plugin.getSettingsManager().getPlayerLanguage().getOrDefault(playerUUID, "es");
+        Map<String, String> langMap = localizedMessages.getOrDefault(lang, localizedMessages.get("es"));
+        if(langMap == null) return "§cArchivo de lenguaje no encontrado: " + lang;
+        String message = langMap.get(messageKey);
+        if(message == null) {
+            Map<String, String> esMap = localizedMessages.get("es");
+            message = (esMap != null) ? esMap.getOrDefault(messageKey, "§cID de mensaje no encontrada: " + messageKey) : "§cID de mensaje no encontrada: " + messageKey;
+        }
+        if(placeholders != null && placeholders.length > 0) {
+            if(placeholders.length % 2 != 0) {
+                plugin.getLogger().warning("Uneven placeholder arguments for key: " + messageKey);
+            }else {
+                for(int i = 0; i < placeholders.length; i += 2) {
+                    message = message.replace(placeholders[i], placeholders[i+1]);
+                }
+            }
+        }
+        return message;
     }
 //    /**
 //     * Load all quests from quests/quests.yml
@@ -298,11 +366,11 @@ public class QuestManager {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             if(hasPickedUpQuest(playerUUID, questId) && hasCompletedQuest(playerUUID, questId)) {
                 if(!plugin.getQuestDBManager().pickupRepeatableQuest(playerUUID, questId, quest.getObjectiveCount())) {
-                    Bukkit.getPlayer(playerUUID).sendMessage("Failed to pick up quest!");
+                    Bukkit.getPlayer(playerUUID).sendMessage(getLangMessage(playerUUID, "manager.db_error"));
                     return;
                 }
             }else if(!plugin.getQuestDBManager().pickupQuest(playerUUID, questId, quest.getObjectiveCount())) {
-                Bukkit.getPlayer(playerUUID).sendMessage("Failed to pick up quest!");
+                Bukkit.getPlayer(playerUUID).sendMessage(getLangMessage(playerUUID, "manager.db_error"));
                 return;
             }
            if(!playerProgress.containsKey(playerUUID.toString())) {
@@ -313,7 +381,9 @@ public class QuestManager {
                progress.setStatus(QuestStatus.IN_PROGRESS);
                playerProgress.get(playerUUID.toString()).put(questId, progress);
                Player player = Bukkit.getPlayer(playerUUID);
-               if(player != null && player.isOnline()) player.sendMessage("§aMisión aceptada: §f" + quest.getName("es")); //TODO: Change to support multiple languages
+               String playerLocale = this.plugin.getSettingsManager().getPlayerLanguage().getOrDefault(playerUUID, "es");
+               String questAcceptedMsg = getLangMessage(playerUUID, "manager.quest_accepted", "%quest_name%", quest.getName(playerLocale));
+               if(player != null && player.isOnline()) player.sendMessage(questAcceptedMsg);
            });
         });
     }
@@ -409,7 +479,8 @@ public class QuestManager {
                     }
                     else {
                         Player player = Bukkit.getPlayer(playerUUID);
-                        player.sendMessage("§aQuest completed!, go back to " + quest.getNpcTurnInDetails().getName() + " to turn in the quest!"); //TODO: language support
+                        String turnInMessage = getLangMessage(playerUUID, "manager.turn_in_ready", "%npc_name%", quest.getNpcTurnInDetails().getName());
+                        player.sendMessage(turnInMessage);
                         NpcTurnInDetails details = quest.getNpcTurnInDetails();
                         KakarotModAPI.setQuestTarget(player.getName(), details.getX(), details.getY(), details.getZ(), "Quest Completed", HexcodeUtils.parseColor(details.getArrowColor()));
                     }
