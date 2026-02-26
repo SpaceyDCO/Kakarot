@@ -175,7 +175,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         player.sendMessage("§6§l " + quest.getName().getOrDefault(playerLocale, "Misión") + " §7(#" + questId + ")");
         player.sendMessage("§f" + quest.getDescription().getOrDefault(playerLocale, ""));
         player.sendMessage("");
-        player.sendMessage("§e§lObjectives:");
+        player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.info-objectives"));
         for(int i = 0; i < quest.getObjectives().size(); i++) {
             QuestObjective obj = quest.getObjectives().get(i);
             int currentProgress = progress != null ? progress.getObjectiveProgress()[i] : 0;
@@ -183,7 +183,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             String checkmark = complete ? "§a✓" : "§7○";
             String objMark;
             String target = obj.getObjectiveInfo().getPlaceholderName() != null && !obj.getObjectiveInfo().getPlaceholderName().isEmpty()
-                    ? obj.getObjectiveInfo().getPlaceholderName() : obj.getObjectiveInfo().getTarget();
+                    ? obj.getObjectiveInfo().getPlaceholderName().replace("&", "§") : obj.getObjectiveInfo().getTarget();
             switch(obj.getType()) {
                 case KILL_MOBS:
                     objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-kill");
@@ -212,7 +212,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         }
         player.sendMessage("§8§m─────────────────────────────");
         if(progress != null && progress.getStatus() == QuestStatus.IN_PROGRESS) {
-            player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.info-track-suggestion"));
+            player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.info-track-suggestion", "%quest_id%", questIdStr));
         }
     }
     private void trackQuest(Player player, String questIdStr) {
