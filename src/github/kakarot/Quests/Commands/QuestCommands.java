@@ -172,7 +172,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         PlayerQuestProgress progress = questManager.getPlayerQuestProgress(player.getUniqueId(), questId);
         String playerLocale = Main.instance.getSettingsManager().getPlayerLanguage().getOrDefault(player.getUniqueId(), "es");
         player.sendMessage("§8§m─────────────────────────────");
-        player.sendMessage("§6§l " + quest.getName().getOrDefault(playerLocale, "Misión") + " §7(#" + questId + ")");
+        player.sendMessage("§6§l" + quest.getName().getOrDefault(playerLocale, "Misión") + " §7(#" + questId + ")");
         player.sendMessage("§f" + quest.getDescription().getOrDefault(playerLocale, ""));
         player.sendMessage("");
         player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.info-objectives"));
