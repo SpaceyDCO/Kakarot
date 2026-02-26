@@ -476,8 +476,15 @@ public class QuestManager {
         if(!quest.isRepeatable()) return "XX:YY:ZZ";
         PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
         if(progress == null) return "XX:YY:ZZ";
-        long remainingTime = progress.getNextAvailable() - System.currentTimeMillis(); //TODO: format into something cleaner
-        return String.valueOf(remainingTime);
+        long remainingTime = progress.getNextAvailable() - System.currentTimeMillis();
+        if(remainingTime <= 0) {
+            return "00:00:00";
+        }
+        long totalSeconds = remainingTime / 1000;
+        long hours = totalSeconds / 3600;
+        long minutes = (totalSeconds % 3600) / 60;
+        long seconds = totalSeconds % 60;
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
     //Can be called on main thread
     public void progressObjectiveForPlayer(PlayerQuestProgress progress, QuestObjective objective, Quest quest, UUID playerUUID, int questId, int objectiveIndex, int amount) {
