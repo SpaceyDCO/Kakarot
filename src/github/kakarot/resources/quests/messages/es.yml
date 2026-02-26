@@ -1,4 +1,5 @@
-#Commands
+#---- Comandos ----
+#Los siguientes mensajes son utilizados al ejecutar comandos
 commands:
   invalid-id: "&cID de misión inválida"
   no-info-allowed: "&cNo puedes ver información acerca de una misión no aceptada."
@@ -27,7 +28,9 @@ commands:
   language-set: "&aLenguaje cambiado a %new_language% correctamente."
   opening-gui: "&aMostrando menú de misiones..."
 
-#Quest Manager Events
+#---- Quest Manager ----
+#Los siguientes mensajes son utilizados por el administrador de misiones
+#Como por ejemplo para informar a un jugador que una misión fue aceptada
 manager:
   db_error: "&cError al interactuar con la base de datos de misiones. Contacta a un administrador."
   already_have: "&c¡Ya has aceptado esta misión!"
@@ -39,7 +42,8 @@ manager:
   turn_in_ready: "&e¡Misión completada! Regresa con &b%npc_name% &epara reclamar tu recompensa."
   on_cooldown: "&cEsta misión está en tiempo de espera. Disponible en: &e%time%"
 
-#GUI Elements
+#---- GUI ----
+#Los siguientes mensajes se usan en el interfaz de /quests
 gui:
   no_quests_yet: "&7Aún no tienes misiones."
   #No es necesario colocar colores ya que se asignan automáticamente
