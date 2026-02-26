@@ -36,6 +36,14 @@
         </dependency>
 
         <dependency>
+            <groupId>KakarotMod</groupId>
+            <artifactId>kakarot</artifactId>
+            <version>1.7.10</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/kakarotmod-1.0.1.jar</systemPath>
+        </dependency>
+
+        <dependency>
             <groupId>Minecraft</groupId>
             <artifactId>mc</artifactId>
             <version>1.7.10</version>
@@ -69,6 +77,19 @@
             <version>1.1.1</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/libs/npcdbc-1.1.1.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.44.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>fr.minuskube.inv</groupId>
+            <artifactId>smart-invs</artifactId>
+            <version>1.2.7</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

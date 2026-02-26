@@ -8,6 +8,9 @@ import github.kakarot.Parties.Events.PlayerLeavePartyEvent;
 import github.kakarot.Parties.Listeners.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
+import github.kakarot.Quests.Commands.QuestCommands;
+import github.kakarot.Quests.Listeners.QuestsListeners;
+import github.kakarot.Quests.Managers.*;
 import github.kakarot.Raids.Arena;
 import github.kakarot.Raids.Listeners.GameListener;
 import github.kakarot.Raids.Managers.ConfigManager;
@@ -22,6 +25,8 @@ import github.kakarot.Trivias.TriviasData;
 import lombok.Getter;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.handler.ICloneHandler;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.NpcEvent;
@@ -29,9 +34,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -64,6 +68,15 @@ public class Main extends JavaPlugin {
     private GameListener gameListener;
     //Arenas
 
+    //Quests
+    @Getter private QuestManager questManager;
+    @Getter private PlayerProgressManager progressManager;
+    private QuestsListeners questsListeners;
+    @Getter QuestDBConfig databaseConfig;
+    @Getter QuestDBManager questDBManager;
+    @Getter SettingsManager settingsManager;
+    //Quests
+
     @Getter private IPacketHandler packetHandler;
 
     private final CommandFramework commandFramework = new CommandFramework(this);
@@ -72,6 +85,15 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        //Quests
+        this.databaseConfig = new QuestDBConfig(this);
+        if(!this.databaseConfig.initialize()) {
+            getLogger().severe("Failed to initialize database! Disabling plugin...");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        this.questDBManager = new QuestDBManager(this);
+        //Quests
         this.messageManager = new MessageManager(this);
 
         //Parties
@@ -93,6 +115,17 @@ public class Main extends JavaPlugin {
         this.gameListener = new GameListener(this, this.raidManager);
         getServer().getPluginManager().registerEvents(this.gameListener, this);
         //Arenas
+
+        //Quests
+        this.questManager = new QuestManager(this);
+        this.questManager.initialize();
+        this.questsListeners = new QuestsListeners(this);
+        this.progressManager = new PlayerProgressManager(this);
+        this.settingsManager = new SettingsManager(this);
+        getServer().getPluginManager().registerEvents(this.questsListeners, this);
+        //QuestDBConfig.initialize(this);
+        getCommand("quest").setExecutor(new QuestCommands());
+        //Quests
 
         this.packetHandler = new PacketHandler();
         classesRegistration.loadCommands("github.kakarot.Commands");
@@ -118,6 +151,14 @@ public class Main extends JavaPlugin {
         PlayerLeavePartyEvent.getHandlerList().unregister(this.gameListener);
         this.raidManager.cleanupArenas();
         //Arenas
+
+        //Quests
+        PlayerJoinEvent.getHandlerList().unregister(this.questsListeners);
+        PlayerQuitEvent.getHandlerList().unregister(this.questsListeners);
+        InventoryClickEvent.getHandlerList().unregister(this.questsListeners);
+        PlayerPickupItemEvent.getHandlerList().unregister(this.questsListeners);
+        this.databaseConfig.close();
+        //Quests
     }
 
     //TRIVIA
@@ -221,12 +262,17 @@ public class Main extends JavaPlugin {
     //RAIDS CNPC EVENTS
     public void onNpcDiedEvent(NpcEvent.DiedEvent event) {
         this.gameListener.onNpcDied(event);
+        this.questsListeners.onNpcDied(event.getNpc(), event.getDamageSource().getTrueSource());
     }
     public void onNpcDied(ICustomNpc<?> npc) {
         this.gameListener.npcDied(npc);
     }
     public void onNpcDamagedEvent(NpcEvent.DamagedEvent event) {
         this.gameListener.onNpcDamaged(event);
+    }
+    public void onPlayerNpcInteractEvent(IPlayerEvent.InteractEvent event) {
+        if(!(event.getTarget() instanceof ICustomNpc)) return;
+        this.questsListeners.onPlayerNpcInteract((ICustomNpc<?>) event.getTarget(), event.getPlayer());
     }
     //RAIDS CNPC EVENTS
 }

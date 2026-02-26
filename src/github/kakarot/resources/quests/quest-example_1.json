@@ -1,0 +1,92 @@
+{
+  "id": 1,
+  "name": {
+    "en": "Collect 7 Red dye and Kill 5 Frieza",
+    "es": "Busca 7 tinte rojo y derrota a Freezer 5 veces"
+  },
+  "description": {
+    "en": "Collect 7 Red dye and Kill 5 Frieza",
+    "es": "Busca 7 tinte rojo y derrota a freezer 5 veces"
+  },
+  "objectives": [
+    {
+      "type": "COLLECT_ITEMS",
+      "objectiveInfo": {
+        "target": "351:1",
+        "title": ""
+      },
+      "trackingInfo": {
+        "x": 623,
+        "y": 67,
+        "z": -56,
+        "label": {
+          "en": "Collect red dye %current_progress%/%required%",
+          "es": "Consigue tinte rojo %current_progress%/%required%"
+        },
+        "arrowColor": "light_blue@0.75",
+        "labelColor": "white"
+      },
+      "required": 7,
+      "shareable": false
+    },
+    {
+      "type": "KILL_MOBS",
+      "objectiveInfo": {
+        "target": "Frieza",
+        "title": ""
+      },
+      "trackingInfo": {
+        "x": 608,
+        "y": 67,
+        "z": -54,
+        "label": {
+          "en": "Defeat Frieza %current_progress%/%required%",
+          "es": "Derrota a Freezer %current_progress%/%required%"
+        },
+        "arrowColor": "red@0.6",
+        "labelColor": "white"
+      },
+      "required": 1,
+      "shareable": false
+    }
+  ],
+  "rewards": [
+    {
+      "type": "COMMAND",
+      "value": "give {player} diamond 64",
+      "description": {
+        "en": "+ 64 Diamonds",
+        "es": "+ 64 Diamantes"
+      }
+    }
+  ],
+  "completionMessage": {
+    "en": "Bulma thanks you for the Dragon Balls!",
+    "es": "¡Bulma te agradece por las Esferas del Dragón!"
+  },
+  "titleInfo": {
+    "title": {
+      "en": "Quest completed",
+      "es": "Misión completada"
+    },
+    "subtitle": {
+      "en": "%quest_name%",
+      "es": "%quest_name%"
+    },
+    "titleColor": "green",
+    "subtitleColor": "white",
+    "displayTime": 10,
+    "fadeoutTime": 2
+  },
+  "repeatable": false,
+  "repeatCooldown": 0,
+  "turnIn": true,
+  "npcTurnInDetails": {
+    "name": "Bulma",
+    "title": "",
+    "x": 612,
+    "y": 67,
+    "z": -51,
+    "arrowColor": "green@0.75"
+  }
+}

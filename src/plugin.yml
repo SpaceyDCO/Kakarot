@@ -2,3 +2,8 @@ main: github.kakarot.Main
 version: 1.0
 name: Kakarot
 author: SpaceyDCO
+commands:
+  quest:
+    description: Manage quests
+    usage: /quest <list|info|track|untrack|add|complete|language|debug>
+    aliases: [quests]
