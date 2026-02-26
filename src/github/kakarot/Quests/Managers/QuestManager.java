@@ -39,6 +39,7 @@ public class QuestManager {
     public QuestManager(Main plugin) {
         this.plugin = plugin;
     }
+    //TODO: FIX Collect item bug (update progress on player item pickup properly)
 
     /**
      * Initializes the quest manager, this is called on plugin startup and loads all quests from quests.yml

@@ -13,7 +13,8 @@
       "type": "COLLECT_ITEMS",
       "objectiveInfo": {
         "target": "351:1",
-        "title": ""
+        "title": "",
+        "placeholderName": "&cTinte Rojo"
       },
       "trackingInfo": {
         "x": 623,

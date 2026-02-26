@@ -182,24 +182,20 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             boolean complete = obj.isComplete(currentProgress);
             String checkmark = complete ? "§a✓" : "§7○";
             String objMark;
-            String target;
+            String target = obj.getObjectiveInfo().getPlaceholderName() != null && !obj.getObjectiveInfo().getPlaceholderName().isEmpty()
+                    ? obj.getObjectiveInfo().getPlaceholderName() : obj.getObjectiveInfo().getTarget();
             switch(obj.getType()) {
                 case KILL_MOBS:
                     objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-kill");
-                    target = obj.getObjectiveInfo().getTarget();
                     break;
                 case TALK_TO_NPC:
                     objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-talk");
-                    target = obj.getObjectiveInfo().getTarget();
                     break;
                 case COLLECT_ITEMS:
                     objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-collect");
-                    ItemStack item = new ItemStack(obj.getObjectiveInfo().getItemId(), 1, (short) 1, obj.getObjectiveInfo().getDataValue());
-                    target = item.toString(); //TODO: change into something cleaner
                     break;
                 default:
                     objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-custom");
-                    target = obj.getObjectiveInfo().getTarget();
                     break;
             }
             String progressText = "§7(" + currentProgress + "/" + obj.getRequired() + ")";
