@@ -105,7 +105,7 @@ public class QuestManager {
         if(!dataFolder.exists()) {
             if(dataFolder.mkdirs()) {
                 createDefaultLanguages(new File(dataFolder, "es.yml"));
-                //TODO: add english messages too
+                createDefaultLanguages(new File(dataFolder, "en.yml"));
             }
             else {
                 plugin.getLogger().severe("Could not create quest message data folder in " + dataFolder.getAbsolutePath());
