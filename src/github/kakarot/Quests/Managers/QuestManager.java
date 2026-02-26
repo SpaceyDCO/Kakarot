@@ -13,14 +13,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
@@ -77,14 +77,16 @@ public class QuestManager {
         for(File file : questFiles) {
             try {
                 int questId = extractQuestIdFromFilename(file.getName());
-                Quest quest = gson.fromJson(new FileReader(file), Quest.class);
+                Quest quest;
+                try(InputStreamReader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
+                    quest = gson.fromJson(reader, Quest.class);
+                }
                 if(quest.getId() != questId) {
                     plugin.getLogger().severe("ID mismatch in " + file.getName());
                     continue;
                 }
                 quests.put(questId, quest);
                 plugin.getLogger().info("Loaded quest #" + quest.getId());
-                buildReverseIndex();
             }catch(IllegalArgumentException e) {
                 plugin.getLogger().log(Level.SEVERE, "Invalid filename: " + file.getName() + " in " + file.getAbsolutePath(), e.getMessage());
             }catch(FileNotFoundException e) {
@@ -92,6 +94,9 @@ public class QuestManager {
             }catch(Exception e) {
                 plugin.getLogger().log(Level.SEVERE, "Could not load quest " + file.getName() + "...", e);
             }
+        }
+        if(!quests.isEmpty()) {
+            buildReverseIndex();
         }
     }
     private void loadMessages() {
@@ -114,7 +119,7 @@ public class QuestManager {
         for(File messages : messageFiles) {
             try {
                 String langCode = messages.getName().replace(".yml", "").toLowerCase();
-                FileConfiguration config = YamlConfiguration.loadConfiguration(messages);
+                FileConfiguration config = loadYamlUtf8(messages);
                 Map<String, String> translations = new HashMap<>();
                 for(String key : config.getKeys(true)) {
                     if(!config.isConfigurationSection(key)) {
@@ -131,6 +136,14 @@ public class QuestManager {
                 plugin.getLogger().log(Level.SEVERE, "There was an error trying to load messages from file " + messages.getName(), e);
             }
         }
+    }
+    private YamlConfiguration loadYamlUtf8(File file) throws IOException, InvalidConfigurationException {
+        YamlConfiguration config = new YamlConfiguration();
+        try(InputStream in = Files.newInputStream(file.toPath());
+            Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+            config.load(reader);
+        }
+        return config;
     }
     private void createDefaultLanguages(File destination) {
         try {
