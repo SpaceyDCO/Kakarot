@@ -151,7 +151,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
 //        player.sendMessage("§8§m─────────────────────────────");
 //        player.sendMessage("§7Use §f/quest info <id> §7for details");
 //    }
-    private void showQuestInfo(Player player, String questIdStr) {//TODO: better quest info (show skull if kill, book if interact and so on)
+    private void showQuestInfo(Player player, String questIdStr) {
         QuestManager questManager = Main.instance.getQuestManager();
         int questId;
         try {
@@ -195,7 +195,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
                 case COLLECT_ITEMS:
                     objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-collect");
                     ItemStack item = new ItemStack(obj.getObjectiveInfo().getItemId(), 1, (short) 1, obj.getObjectiveInfo().getDataValue());
-                    target = item.toString();
+                    target = item.toString(); //TODO: change into something cleaner
                     break;
                 default:
                     objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-custom");
@@ -266,7 +266,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         player.sendMessage(trackingMsg);
     }
     private void untrackQuest(Player player) {
-        //TODO: add functionality
+        KakarotModAPI.clearQuestTarget(player.getName());
         player.sendMessage(Main.instance.getQuestManager().getLangMessage(player.getUniqueId(), "commands.stop_tracking"));
     }
     private void addQuestToPlayer(CommandSender sender, String playerName, String questIdStr) {
