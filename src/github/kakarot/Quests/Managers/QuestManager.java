@@ -593,11 +593,15 @@ public class QuestManager {
                     if(!plugin.getProgressManager().itemMatchesNbt(item, requiredNBT)) continue;
                 }
                 int removeCount = Math.min(item.getAmount(), amountToRemove);
-                item.setAmount(item.getAmount() - removeCount);
-                player.updateInventory();
+                if((item.getAmount() - removeCount) <= 0) {
+                    player.getInventory().setItem(i, null);
+                }else {
+                    item.setAmount(item.getAmount() - removeCount);
+                }
                 amountToRemove -= removeCount;
             }
         }
+        player.updateInventory();
     }
     public void completeQuestAsync(UUID playerUUID, int questId) {
         Quest quest = getQuest(questId);
