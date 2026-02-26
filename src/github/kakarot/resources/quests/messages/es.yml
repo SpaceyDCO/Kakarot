@@ -41,9 +41,17 @@ manager:
 
 #GUI Elements
 gui:
-  next_page: "&eSiguiente Página"
-  previous_page: "&ePágina Anterior"
+  no_quests_yet: "&7Aún no tienes misiones."
+  #No es necesario colocar colores ya que se asignan automáticamente
+  info_in_process: "En Progreso"
+  info_completed: "Completada"
+  info_can_repeat: "Repetible"
+  info_unknown: "Desconocido"
+  info_progress_text: "&7Progreso: %progress_bar%"
+  info_controls_left: "&7Clic izquierdo: &fDetalles"
+  info_controls_right: "&7Clic derecho: &fRastrear"
+  controls: "&e&lControles"
+  page: "&7Página"
+  next_page: "&eSiguiente Página ▶"
+  previous_page: "&e◀ Página Anterior"
   close: "&cCerrar Menú"
-  status_in_progress: "&eEn Progreso"
-  status_completed: "&aCompletada"
-  status_available: "&bDisponible"
