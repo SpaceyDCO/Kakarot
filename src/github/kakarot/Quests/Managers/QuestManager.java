@@ -104,8 +104,7 @@ public class QuestManager {
         File dataFolder = new File(plugin.getDataFolder(), "quests/messages");
         if(!dataFolder.exists()) {
             if(dataFolder.mkdirs()) {
-                createDefaultLanguages(new File(dataFolder, "es.yml"));
-                createDefaultLanguages(new File(dataFolder, "en.yml"));
+                createDefaultLanguages(dataFolder);
             }
             else {
                 plugin.getLogger().severe("Could not create quest message data folder in " + dataFolder.getAbsolutePath());
@@ -146,14 +145,20 @@ public class QuestManager {
         }
         return config;
     }
-    private void createDefaultLanguages(File destination) {
+    private void createDefaultLanguages(File dataFolder) {
         try {
-            if(!destination.exists()) {
-                Files.copy(plugin.getResource("quests/messages/es.yml"), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                plugin.getLogger().info("Created default config: " + destination.getName());
+            File esDestination = new File(dataFolder, "es.yml");
+            File enDestination = new File(dataFolder, "en.yml");
+            if(!esDestination.exists()) {
+                Files.copy(plugin.getResource("quests/messages/es.yml"), esDestination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                plugin.getLogger().info("Created default config: " + esDestination.getName());
+            }
+            if(!enDestination.exists()) {
+                Files.copy(plugin.getResource("quests/messages/en.yml"), enDestination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                plugin.getLogger().info("Created default config: " + enDestination.getName());
             }
         }catch(Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not save default resource: " + "quests/messages/es.yml", e);
+            plugin.getLogger().log(Level.SEVERE, "Could not save default resource: " + "quests/messages/es.yml" + " or quests/messages/en.yml", e);
         }
     }
     public String getLangMessage(UUID playerUUID, String messageKey, String... placeholders) {
