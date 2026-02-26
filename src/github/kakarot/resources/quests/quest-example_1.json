@@ -56,8 +56,8 @@
       "type": "COMMAND",
       "value": "give {player} diamond 64",
       "description": {
-        "en": "+ 64 Diamonds",
-        "es": "+ 64 Diamantes"
+        "en": "64 Diamonds",
+        "es": "64 Diamantes"
       }
     }
   ],
