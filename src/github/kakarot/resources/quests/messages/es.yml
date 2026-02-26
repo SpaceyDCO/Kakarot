@@ -41,6 +41,7 @@ manager:
   #Será sustituido por el nombre del NPC donde se entrega la misión
   turn_in_ready: "&e¡Misión completada! Regresa con &b%npc_name% &epara reclamar tu recompensa."
   on_cooldown: "&cEsta misión está en tiempo de espera. Disponible en: &e%time%"
+  quest_completed_label: "Misión Completada"
 
 #---- GUI ----
 #Los siguientes mensajes se usan en el interfaz de /quests

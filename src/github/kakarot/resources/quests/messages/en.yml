@@ -41,6 +41,7 @@ manager:
   #Replaced by the NPC's name required to turn in the quest
   turn_in_ready: "&eQuest completed! go back to &b%npc_name% &eto claim your reward."
   on_cooldown: "&cYou can repeat this quest again in: &e%time%"
+  quest_completed_label: "Quest Completed"
 
 #---- GUI ----
 #These messages are used in the /quests GUI
