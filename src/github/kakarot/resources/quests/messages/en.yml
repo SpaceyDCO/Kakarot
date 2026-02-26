@@ -39,7 +39,7 @@ manager:
   quest_accepted: "&a&lQuest accepted: &f%quest_name%"
   #PLACEHOLDER: %npc_name%
   #Replaced by the NPC's name required to turn in the quest
-  turn_in_ready: "&e¡Quest completed! go back to &b%npc_name% &eto claim your reward."
+  turn_in_ready: "&eQuest completed! go back to &b%npc_name% &eto claim your reward."
   on_cooldown: "&cYou can repeat this quest again in: &e%time%"
 
 #---- GUI ----
