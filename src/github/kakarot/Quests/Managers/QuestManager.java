@@ -617,7 +617,7 @@ public class QuestManager {
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1, 1);
                 player.sendMessage("§7§m─────────────────────────────");
                for(QuestReward reward : quest.getRewards()) {
-                   player.sendMessage(reward.getDescription().getOrDefault(playerLocale, "").replace("&", "§"));
+                   player.sendMessage("&a+ " + reward.getDescription().getOrDefault(playerLocale, "").replace("&", "§"));
                }
                 player.sendMessage("§7§m─────────────────────────────");
                 player.sendMessage(quest.getCompletionMessage().getOrDefault(playerLocale, "").replace("&", "§"));
