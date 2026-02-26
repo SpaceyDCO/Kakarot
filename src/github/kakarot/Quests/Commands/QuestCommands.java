@@ -414,6 +414,6 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
     }
     private void handleSetLanguageCommand(Player player, String newLanguage) {
         Main.instance.getSettingsManager().setPlayerLanguage(player.getUniqueId(), newLanguage);
-        player.sendMessage(Main.instance.getQuestManager().getLangMessage(player.getUniqueId(), "commands.language-set", newLanguage));
+        player.sendMessage(Main.instance.getQuestManager().getLangMessage(player.getUniqueId(), "commands.language-set", "%new_language%", newLanguage));
     }
 }
