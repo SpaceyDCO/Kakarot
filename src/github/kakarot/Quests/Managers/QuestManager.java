@@ -34,6 +34,8 @@ public class QuestManager {
     public final Map<String, Map<Integer, PlayerQuestProgress>> playerProgress = new HashMap<>();
     public final Map<String, List<QuestObjectiveReference>> npcObjectives = new HashMap<>();
     public final Map<String, List<QuestTurnInReference>> npcsTurnIn = new HashMap<>();
+    //Key: playerUUID, Value: Integer of the quest the player is currently tracking...
+    public final Map<UUID, Integer> playerQuestTrack = new HashMap<>();
     //Key: language code like "en", "es", Value: map with key message_id (like command.error)
     public final Map<String, Map<String, String>> localizedMessages = new HashMap<>();
     public QuestManager(Main plugin) {
@@ -500,8 +502,10 @@ public class QuestManager {
                         Player player = Bukkit.getPlayer(playerUUID);
                         String turnInMessage = getLangMessage(playerUUID, "manager.turn_in_ready", "%npc_name%", quest.getNpcTurnInDetails().getName());
                         player.sendMessage(turnInMessage);
-                        NpcTurnInDetails details = quest.getNpcTurnInDetails();
-                        KakarotModAPI.setQuestTarget(player.getName(), details.getX(), details.getY(), details.getZ(), "Quest Completed", HexcodeUtils.parseColor(details.getArrowColor()));
+                        if(this.playerQuestTrack.containsKey(playerUUID) && this.playerQuestTrack.getOrDefault(playerUUID, -1) == questId) {
+                            NpcTurnInDetails details = quest.getNpcTurnInDetails();
+                            KakarotModAPI.setQuestTarget(player.getName(), details.getX(), details.getY(), details.getZ(), getLangMessage(playerUUID, "manager.quest_completed_label"), HexcodeUtils.parseColor(details.getArrowColor()));
+                        }
                     }
                 }else {
                     Player player = Bukkit.getPlayer(playerUUID);
@@ -510,16 +514,18 @@ public class QuestManager {
                         player.sendMessage("§7[Quest] §f" + objective.getObjectiveInfo().getTarget() + " §7(" + percentage + "%)");
                         if(progress.getObjectiveProgress()[objectiveIndex] >= objective.getRequired()) {
                             //Objective completed, update tracking to next objective...
-                            updateTrackingToNextObj(progress, quest, player);
+                            if(this.playerQuestTrack.containsKey(playerUUID) && this.playerQuestTrack.getOrDefault(playerUUID, -1) == questId) updateTrackingToNextObj(progress, quest, player);
                             return;
                         }
                         //Objective not completed, just update tracking...
-                        TrackingInfo info = objective.getTrackingInfo();
-                        if(info == null) return;
-                        String playerLocale = plugin.getSettingsManager().getPlayerLanguage().getOrDefault(player.getUniqueId(), "es");
-                        String label = info.getLabel().getOrDefault(playerLocale, "");
-                        label = label.replace("%current_progress%", String.valueOf(progress.getObjectiveProgress()[objectiveIndex])).replace("%required%", String.valueOf(objective.getRequired()));
-                        KakarotModAPI.setQuestTarget(player.getName(), info.getX(), info.getY(), info.getZ(), label, HexcodeUtils.parseColor(info.getArrowColor()), HexcodeUtils.parseColor(info.getLabelColor()));
+                        if(this.playerQuestTrack.containsKey(playerUUID) && this.playerQuestTrack.getOrDefault(playerUUID, -1) == questId) {
+                            TrackingInfo info = objective.getTrackingInfo();
+                            if(info == null) return;
+                            String playerLocale = plugin.getSettingsManager().getPlayerLanguage().getOrDefault(player.getUniqueId(), "es");
+                            String label = info.getLabel().getOrDefault(playerLocale, "");
+                            label = label.replace("%current_progress%", String.valueOf(progress.getObjectiveProgress()[objectiveIndex])).replace("%required%", String.valueOf(objective.getRequired()));
+                            KakarotModAPI.setQuestTarget(player.getName(), info.getX(), info.getY(), info.getZ(), label, HexcodeUtils.parseColor(info.getArrowColor()), HexcodeUtils.parseColor(info.getLabelColor()));
+                        }
                     }
                 }
             });
@@ -551,6 +557,7 @@ public class QuestManager {
         if(hasCompletedQuest(playerUUID, questId)) return;
         progress.markCompleted(getQuest(questId));
         removeQuestItems(Bukkit.getPlayer(playerUUID), questId);
+        this.playerQuestTrack.remove(playerUUID);
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
            completeQuestAsync(playerUUID, questId);
         });
@@ -587,6 +594,7 @@ public class QuestManager {
                 }
                 int removeCount = Math.min(item.getAmount(), amountToRemove);
                 item.setAmount(item.getAmount() - removeCount);
+                player.updateInventory();
                 amountToRemove -= removeCount;
             }
         }

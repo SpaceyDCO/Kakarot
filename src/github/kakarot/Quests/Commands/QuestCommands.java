@@ -247,8 +247,15 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
                 break;
             }
         }
-        if(nonCompletedObjIndex == -1) {
+        //If quest is completed and is not TURN IN, clear quest arrow
+        if(nonCompletedObjIndex == -1 && !quest.isTurnIn()) {
             KakarotModAPI.clearQuestTarget(player.getName());
+            return;
+        }
+        //If quest is completed BUT is turn in, instead render quest completed arrow...
+        if(nonCompletedObjIndex == -1) {
+            NpcTurnInDetails details = quest.getNpcTurnInDetails();
+            KakarotModAPI.setQuestTarget(player.getName(), details.getX(), details.getY(), details.getZ(), questManager.getLangMessage(player.getUniqueId(), "manager.quest_completed_label"), HexcodeUtils.parseColor(details.getArrowColor()));
             return;
         }
         QuestObjective obj = quest.getObjectives().get(nonCompletedObjIndex);
@@ -260,9 +267,11 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         KakarotModAPI.setQuestTarget(player.getName(), info.getX(), info.getY(), info.getZ(), label, HexcodeUtils.parseColor(info.getArrowColor()), HexcodeUtils.parseColor(info.getLabelColor()));
         String trackingMsg = questManager.getLangMessage(player.getUniqueId(), "commands.now_tracking", "%quest_name%", quest.getName(playerLocale));
         player.sendMessage(trackingMsg);
+        Main.instance.getQuestManager().playerQuestTrack.put(player.getUniqueId(), questId);
     }
     private void untrackQuest(Player player) {
         KakarotModAPI.clearQuestTarget(player.getName());
+        Main.instance.getQuestManager().playerQuestTrack.remove(player.getUniqueId());
         player.sendMessage(Main.instance.getQuestManager().getLangMessage(player.getUniqueId(), "commands.stop_tracking"));
     }
     private void addQuestToPlayer(CommandSender sender, String playerName, String questIdStr) {
