@@ -275,4 +275,9 @@ public class Main extends JavaPlugin {
         this.questsListeners.onPlayerNpcInteract((ICustomNpc<?>) event.getTarget(), event.getPlayer());
     }
     //RAIDS CNPC EVENTS
+    //Custom methods to be used as bridge (mainly for bug fixes)
+    public void forceInventoryCheck(NpcEvent.DiedEvent event) {
+        this.questsListeners.forceInventoryCheck(event.getDamageSource().getTrueSource());
+    }
+    //Custom methods to be used as bridge (mainly for bug fixes)
 }
