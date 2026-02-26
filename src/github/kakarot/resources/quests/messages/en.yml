@@ -1,0 +1,61 @@
+#---- Comandos ----
+#The following messages are used when executing commands
+commands:
+  invalid-id: "&cInvalid quest ID"
+  no-info-allowed: "&cYou can't see information about this quest."
+  info-objectives: "&e&lObjectives:"
+  #Used when executing /quest info <id>
+  #It notifies the player each type of objective
+  info-objective-kill: "&c[DEFEAT]"
+  info-objective-talk: "&a[TALK]"
+  info-objective-collect: "&e[COLLECT]"
+  info-objective-custom: "&9[CUSTOM]"
+  info-rewards: "&a&lRewards:"
+  #PLACEHOLDER: %cooldown%
+  #Replaced by the time the player needs to wait in order to repeat the quest again
+  info-cooldown: "&7Repeatable every %cooldown%"
+  info-track-suggestion: "&7Use /quest track %quest_id% to track this quest."
+  cant_track: "&cYou can't track this quest."
+  already_completed: "&cYou can't track this quest. Already completed."
+  now_tracking: "&a✓ Now tracking: %quest_name%"
+  stop_tracking: "&a✓ Clearing quest tracker..."
+  not-repeatable: "&cThis quest is not repeatable."
+  not-repeatable-yet: "&cYou cannot repeat this quest yet."
+  invalid-language: "&cInvalid language, please select a valid one."
+  correct_usage: "&eCorrect usage: &c%usage%"
+  no_permission: "&cYou don't have permissions to do this."
+  unknown-command: "&cUnknown command: %command%."
+  language-set: "&aLanguage changed to %new_language% successfully."
+  opening-gui: "&aOpening up quests GUI..."
+
+#---- Quest Manager ----
+#These messages are utilized by the quest manager,
+#For example, informing the player that he already has a specific quest
+manager:
+  db_error: "&cThere was an error trying to reach the database. Please contact an administrator"
+  already_have: "&cYou already have this quest!"
+  #PLACEHOLDER: %quest_name%
+  #Replaced by the actual quest's name
+  quest_accepted: "&a&lQuest accepted: &f%quest_name%"
+  #PLACEHOLDER: %npc_name%
+  #Replaced by the NPC's name required to turn in the quest
+  turn_in_ready: "&e¡Quest completed! go back to &b%npc_name% &eto claim your reward."
+  on_cooldown: "&cYou can repeat this quest again in: &e%time%"
+
+#---- GUI ----
+#These messages are used in the /quests GUI
+gui:
+  no_quests_yet: "&7You don't have any quests yet."
+  #Colors are assigned automatically, no need to assign them here (unless needed)
+  info_in_process: "In Progress"
+  info_completed: "Completed"
+  info_can_repeat: "Repeatable"
+  info_unknown: "Unknown"
+  info_progress_text: "&7Progress: %progress_bar%"
+  info_controls_left: "&7Left-Click: &fDetails"
+  info_controls_right: "&7Right-Click: &fTrack"
+  controls: "&e&lControls"
+  page: "&7Page"
+  next_page: "&eNext Page ▶"
+  previous_page: "&e◀ Previous Page"
+  close: "&cClose Menu"
