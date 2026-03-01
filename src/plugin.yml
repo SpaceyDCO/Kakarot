@@ -7,3 +7,6 @@ commands:
     description: Manage quests
     usage: /quest <list|info|track|untrack|add|complete|language|debug>
     aliases: [quests]
+  phasing:
+    description: Manage phasing system
+    usage: /quest <add|remove|check|hideclient|showclient>
