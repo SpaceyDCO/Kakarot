@@ -8,6 +8,8 @@ import github.kakarot.Parties.Events.PlayerLeavePartyEvent;
 import github.kakarot.Parties.Listeners.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
+import github.kakarot.Phasing.Listeners;
+import github.kakarot.Phasing.PhasingConfigManager;
 import github.kakarot.Quests.Commands.QuestCommands;
 import github.kakarot.Quests.Listeners.QuestsListeners;
 import github.kakarot.Quests.Managers.*;
@@ -77,6 +79,11 @@ public class Main extends JavaPlugin {
     @Getter SettingsManager settingsManager;
     //Quests
 
+    //Phasing
+    @Getter private Listeners phasingListeners;
+    @Getter private PhasingConfigManager phasingConfigManager;
+    //Phasing
+
     @Getter private IPacketHandler packetHandler;
 
     private final CommandFramework commandFramework = new CommandFramework(this);
@@ -127,6 +134,13 @@ public class Main extends JavaPlugin {
         getCommand("quest").setExecutor(new QuestCommands());
         //Quests
 
+        //Phasing
+        this.phasingConfigManager = new PhasingConfigManager(this);
+        this.phasingConfigManager.loadPhasedNPCsToCache();
+        this.phasingListeners = new Listeners(this);
+        getServer().getPluginManager().registerEvents(this.phasingListeners, this);
+        //Phasing
+
         this.packetHandler = new PacketHandler();
         classesRegistration.loadCommands("github.kakarot.Commands");
         Bukkit.getConsoleSender().sendMessage("Activated plugin Kakarot");
@@ -159,6 +173,8 @@ public class Main extends JavaPlugin {
         PlayerPickupItemEvent.getHandlerList().unregister(this.questsListeners);
         this.databaseConfig.close();
         //Quests
+
+        PlayerJoinEvent.getHandlerList().unregister(this.phasingListeners);
     }
 
     //TRIVIA
@@ -273,6 +289,7 @@ public class Main extends JavaPlugin {
     public void onPlayerNpcInteractEvent(IPlayerEvent.InteractEvent event) {
         if(!(event.getTarget() instanceof ICustomNpc)) return;
         this.questsListeners.onPlayerNpcInteract((ICustomNpc<?>) event.getTarget(), event.getPlayer());
+        this.phasingListeners.onNPCInteract((ICustomNpc<?>) event.getTarget(), event.getPlayer());
     }
     //RAIDS CNPC EVENTS
     //Custom methods to be used as bridge (mainly for bug fixes)
