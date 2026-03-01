@@ -1,4 +1,4 @@
-package github.kakarot.Phasing;
+package github.kakarot.Phasing.Cache;
 
 import github.kakarot.Phasing.Models.PhasedNPC;
 
