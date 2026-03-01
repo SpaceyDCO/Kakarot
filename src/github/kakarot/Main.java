@@ -8,7 +8,8 @@ import github.kakarot.Parties.Events.PlayerLeavePartyEvent;
 import github.kakarot.Parties.Listeners.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
-import github.kakarot.Phasing.Listeners;
+import github.kakarot.Phasing.Commands.PhasingCommandExecutor;
+import github.kakarot.Phasing.Listeners.Listeners;
 import github.kakarot.Phasing.PhasingConfigManager;
 import github.kakarot.Quests.Commands.QuestCommands;
 import github.kakarot.Quests.Listeners.QuestsListeners;
@@ -27,7 +28,6 @@ import github.kakarot.Trivias.TriviasData;
 import lombok.Getter;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntity;
-import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.handler.ICloneHandler;
 import noppes.npcs.scripted.NpcAPI;
@@ -139,6 +139,7 @@ public class Main extends JavaPlugin {
         this.phasingConfigManager.loadPhasedNPCsToCache();
         this.phasingListeners = new Listeners(this);
         getServer().getPluginManager().registerEvents(this.phasingListeners, this);
+        getCommand("phasing").setExecutor(new PhasingCommandExecutor(this));
         //Phasing
 
         this.packetHandler = new PacketHandler();
