@@ -1,0 +1,9 @@
+npcs:
+  quest_vegeta_1:
+    name: "Vegeta"
+    title: "Prince"
+    permission: "kakarot.quest.goku_complete"
+  quest_piccolo_training:
+    name: "Piccolo"
+    title: "" # Empty if no title
+    permission: "kakarot.quest.raditz_complete"
