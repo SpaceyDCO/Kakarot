@@ -1,6 +1,7 @@
 package github.kakarot.Phasing;
 
 import github.kakarot.Main;
+import github.kakarot.Phasing.Cache.PhasingCache;
 import github.kakarot.Phasing.Models.PhasedNPC;
 import lombok.AllArgsConstructor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -56,6 +57,28 @@ public class PhasingConfigManager {
             plugin.getLogger().info("Successfully loaded " + PhasingCache.getAll().size() + " NPCs for Phasing System...");
         }catch(IOException | InvalidConfigurationException e) {
             plugin.getLogger().log(Level.SEVERE, "Invalid configuration for file phasingData.yml inside " + phasingDataFolder.getAbsolutePath(), e);
+        }
+    }
+    public void savePhasedNPC(String id, String name, String title, String permission) {
+        File phasingFile = new File(plugin.getDataFolder(), "phasing/phasingData.yml");
+        try {
+            YamlConfiguration config = loadYamlUtf8(phasingFile);
+            config.set("npcs." + id + ".name", name);
+            config.set("npcs." + id + ".title", title);
+            config.set("npcs." + id + ".permission", permission);
+            config.save(phasingFile);
+        }catch(Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to save NPC to phasingData.yml: " + id, e);
+        }
+    }
+    public void removePhasedNPC(String id) {
+        File phasingFile = new File(plugin.getDataFolder(), "phasing/phasingData.yml");
+        try {
+            YamlConfiguration config = loadYamlUtf8(phasingFile);
+            config.set("npcs." + id, null);
+            config.save(phasingFile);
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to remove NPC from phasingData.yml: " + id, e);
         }
     }
     private YamlConfiguration loadYamlUtf8(File file) throws IOException, InvalidConfigurationException {
