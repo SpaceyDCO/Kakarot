@@ -28,6 +28,7 @@ import github.kakarot.Trivias.TriviasData;
 import lombok.Getter;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.event.INpcEvent;
 import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.handler.ICloneHandler;
 import noppes.npcs.scripted.NpcAPI;
@@ -290,10 +291,12 @@ public class Main extends JavaPlugin {
     public void onPlayerNpcInteractEvent(IPlayerEvent.InteractEvent event) {
         if(!(event.getTarget() instanceof ICustomNpc)) return;
         this.questsListeners.onPlayerNpcInteract((ICustomNpc<?>) event.getTarget(), event.getPlayer());
-        this.phasingListeners.onNPCInteract((ICustomNpc<?>) event.getTarget(), event.getPlayer());
     }
     //RAIDS CNPC EVENTS
     //Custom methods to be used as bridge (mainly for bug fixes)
+    public boolean checkPhasingNPC(IPlayerEvent.InteractEvent event) {
+        return this.phasingListeners.checkPhasingNPC(event);
+    }
     public void forceInventoryCheck(NpcEvent.DiedEvent event) {
         this.questsListeners.forceInventoryCheck(event.getDamageSource().getTrueSource());
     }

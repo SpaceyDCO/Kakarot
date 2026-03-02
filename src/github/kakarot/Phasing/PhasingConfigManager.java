@@ -3,7 +3,6 @@ package github.kakarot.Phasing;
 import github.kakarot.Main;
 import github.kakarot.Phasing.Cache.PhasingCache;
 import github.kakarot.Phasing.Models.PhasedNPC;
-import lombok.AllArgsConstructor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -12,11 +11,18 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
-@AllArgsConstructor
 public class PhasingConfigManager {
     private final Main plugin;
+    //Reverse index map for faster queries when players interact with npcs:
+    //Key: "npcName|NpcTitle" Value: permission required
+    public final Map<String, String> reverseIndexNpc = new HashMap<>();
+    public PhasingConfigManager(Main plugin) {
+        this.plugin = plugin;
+    }
     public void loadPhasedNPCsToCache() {
         PhasingCache.clear();
         File phasingDataFolder = new File(plugin.getDataFolder(), "phasing");
@@ -49,7 +55,8 @@ public class PhasingConfigManager {
                         plugin.getLogger().warning("Skipping invalid NPC within yml phasingData: " + key + ". Missing name or permission.");
                         continue;
                     }
-                    PhasingCache.add(new PhasedNPC(key, name, title, permission));
+                    PhasingCache.add(new PhasedNPC(key, name.trim(), title.trim(), permission));
+                    reverseIndexNpc.put(name.trim() + "|" + title.trim(), permission);
                 }catch(Exception e) {
                     plugin.getLogger().log(Level.SEVERE, "Failed to load NPC: " + key + ". Formatting error.", e);
                 }
