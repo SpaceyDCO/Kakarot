@@ -12,12 +12,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public class PlayerProgressManager {
-    private final Map<UUID, Map<Integer, PlayerQuestProgress>> playerProgressMap = new HashMap<>();
     private final Main plugin;
     public PlayerProgressManager(Main plugin) {
         this.plugin = plugin;
@@ -44,7 +42,7 @@ public class PlayerProgressManager {
      */
     public void savePlayerProgress(UUID playerUUID, String playerName) {
         this.plugin.getLogger().info("Removed cache data for player " + playerName);
-        this.playerProgressMap.remove(playerUUID);
+        plugin.getQuestManager().playerProgress.remove(playerUUID.toString());
     }
     public boolean playerHasRequiredItem(Player player, QuestObjective objective) {
         ObjectiveInfo info = objective.getObjectiveInfo();
