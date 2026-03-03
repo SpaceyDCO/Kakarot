@@ -9,7 +9,15 @@ import net.minecraft.nbt.NBTTagCompound;
 public class ObjectiveInfo {
     private final String target;
     private String title;
+    private String placeholderName;
     private NBTTagCompound parsedNbt;
+    public ObjectiveInfo(String target, String title, String nbt, String placeholderName) throws NBTException {
+        this.target = target;
+        this.title = title;
+        if(nbt != null && !nbt.isEmpty()) this.parsedNbt = (NBTTagCompound) JsonToNBT.func_150315_a(nbt);
+        else this.parsedNbt = null;
+        this.placeholderName = placeholderName;
+    }
     public ObjectiveInfo(String target, String title, String nbt) throws NBTException {
         this.target = target;
         this.title = title;

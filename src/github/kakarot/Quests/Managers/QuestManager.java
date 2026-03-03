@@ -34,11 +34,14 @@ public class QuestManager {
     public final Map<String, Map<Integer, PlayerQuestProgress>> playerProgress = new HashMap<>();
     public final Map<String, List<QuestObjectiveReference>> npcObjectives = new HashMap<>();
     public final Map<String, List<QuestTurnInReference>> npcsTurnIn = new HashMap<>();
+    //Key: playerUUID, Value: Integer of the quest the player is currently tracking...
+    public final Map<UUID, Integer> playerQuestTrack = new HashMap<>();
     //Key: language code like "en", "es", Value: map with key message_id (like command.error)
     public final Map<String, Map<String, String>> localizedMessages = new HashMap<>();
     public QuestManager(Main plugin) {
         this.plugin = plugin;
     }
+    //TODO: FIX Collect item bug (update progress on player item pickup properly)
 
     /**
      * Initializes the quest manager, this is called on plugin startup and loads all quests from quests.yml
@@ -103,8 +106,7 @@ public class QuestManager {
         File dataFolder = new File(plugin.getDataFolder(), "quests/messages");
         if(!dataFolder.exists()) {
             if(dataFolder.mkdirs()) {
-                createDefaultLanguages(new File(dataFolder, "es.yml"));
-                //TODO: add english messages too
+                createDefaultLanguages(dataFolder);
             }
             else {
                 plugin.getLogger().severe("Could not create quest message data folder in " + dataFolder.getAbsolutePath());
@@ -145,14 +147,20 @@ public class QuestManager {
         }
         return config;
     }
-    private void createDefaultLanguages(File destination) {
+    private void createDefaultLanguages(File dataFolder) {
         try {
-            if(!destination.exists()) {
-                Files.copy(plugin.getResource("quests/messages/es.yml"), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                plugin.getLogger().info("Created default config: " + destination.getName());
+            File esDestination = new File(dataFolder, "es.yml");
+            File enDestination = new File(dataFolder, "en.yml");
+            if(!esDestination.exists()) {
+                Files.copy(plugin.getResource("quests/messages/es.yml"), esDestination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                plugin.getLogger().info("Created default config: " + esDestination.getName());
+            }
+            if(!enDestination.exists()) {
+                Files.copy(plugin.getResource("quests/messages/en.yml"), enDestination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                plugin.getLogger().info("Created default config: " + enDestination.getName());
             }
         }catch(Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not save default resource: " + "quests/messages/es.yml", e);
+            plugin.getLogger().log(Level.SEVERE, "Could not save default resource: " + "quests/messages/es.yml" + " or quests/messages/en.yml", e);
         }
     }
     public String getLangMessage(UUID playerUUID, String messageKey, String... placeholders) {
@@ -468,8 +476,15 @@ public class QuestManager {
         if(!quest.isRepeatable()) return "XX:YY:ZZ";
         PlayerQuestProgress progress = getPlayerQuestProgress(playerUUID, questId);
         if(progress == null) return "XX:YY:ZZ";
-        long remainingTime = progress.getNextAvailable() - System.currentTimeMillis(); //TODO: format into something cleaner
-        return String.valueOf(remainingTime);
+        long remainingTime = progress.getNextAvailable() - System.currentTimeMillis();
+        if(remainingTime <= 0) {
+            return "00:00:00";
+        }
+        long totalSeconds = remainingTime / 1000;
+        long hours = totalSeconds / 3600;
+        long minutes = (totalSeconds % 3600) / 60;
+        long seconds = totalSeconds % 60;
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
     //Can be called on main thread
     public void progressObjectiveForPlayer(PlayerQuestProgress progress, QuestObjective objective, Quest quest, UUID playerUUID, int questId, int objectiveIndex, int amount) {
@@ -494,8 +509,10 @@ public class QuestManager {
                         Player player = Bukkit.getPlayer(playerUUID);
                         String turnInMessage = getLangMessage(playerUUID, "manager.turn_in_ready", "%npc_name%", quest.getNpcTurnInDetails().getName());
                         player.sendMessage(turnInMessage);
-                        NpcTurnInDetails details = quest.getNpcTurnInDetails();
-                        KakarotModAPI.setQuestTarget(player.getName(), details.getX(), details.getY(), details.getZ(), "Quest Completed", HexcodeUtils.parseColor(details.getArrowColor()));
+                        if(this.playerQuestTrack.containsKey(playerUUID) && this.playerQuestTrack.getOrDefault(playerUUID, -1) == questId) {
+                            NpcTurnInDetails details = quest.getNpcTurnInDetails();
+                            KakarotModAPI.setQuestTarget(player.getName(), details.getX(), details.getY(), details.getZ(), getLangMessage(playerUUID, "manager.quest_completed_label"), HexcodeUtils.parseColor(details.getArrowColor()));
+                        }
                     }
                 }else {
                     Player player = Bukkit.getPlayer(playerUUID);
@@ -504,16 +521,18 @@ public class QuestManager {
                         player.sendMessage("§7[Quest] §f" + objective.getObjectiveInfo().getTarget() + " §7(" + percentage + "%)");
                         if(progress.getObjectiveProgress()[objectiveIndex] >= objective.getRequired()) {
                             //Objective completed, update tracking to next objective...
-                            updateTrackingToNextObj(progress, quest, player);
+                            if(this.playerQuestTrack.containsKey(playerUUID) && this.playerQuestTrack.getOrDefault(playerUUID, -1) == questId) updateTrackingToNextObj(progress, quest, player);
                             return;
                         }
                         //Objective not completed, just update tracking...
-                        TrackingInfo info = objective.getTrackingInfo();
-                        if(info == null) return;
-                        String playerLocale = plugin.getSettingsManager().getPlayerLanguage().getOrDefault(player.getUniqueId(), "es");
-                        String label = info.getLabel().getOrDefault(playerLocale, "");
-                        label = label.replace("%current_progress%", String.valueOf(progress.getObjectiveProgress()[objectiveIndex])).replace("%required%", String.valueOf(objective.getRequired()));
-                        KakarotModAPI.setQuestTarget(player.getName(), info.getX(), info.getY(), info.getZ(), label, HexcodeUtils.parseColor(info.getArrowColor()), HexcodeUtils.parseColor(info.getLabelColor()));
+                        if(this.playerQuestTrack.containsKey(playerUUID) && this.playerQuestTrack.getOrDefault(playerUUID, -1) == questId) {
+                            TrackingInfo info = objective.getTrackingInfo();
+                            if(info == null) return;
+                            String playerLocale = plugin.getSettingsManager().getPlayerLanguage().getOrDefault(player.getUniqueId(), "es");
+                            String label = info.getLabel().getOrDefault(playerLocale, "");
+                            label = label.replace("%current_progress%", String.valueOf(progress.getObjectiveProgress()[objectiveIndex])).replace("%required%", String.valueOf(objective.getRequired()));
+                            KakarotModAPI.setQuestTarget(player.getName(), info.getX(), info.getY(), info.getZ(), label, HexcodeUtils.parseColor(info.getArrowColor()), HexcodeUtils.parseColor(info.getLabelColor()));
+                        }
                     }
                 }
             });
@@ -545,6 +564,7 @@ public class QuestManager {
         if(hasCompletedQuest(playerUUID, questId)) return;
         progress.markCompleted(getQuest(questId));
         removeQuestItems(Bukkit.getPlayer(playerUUID), questId);
+        this.playerQuestTrack.remove(playerUUID);
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
            completeQuestAsync(playerUUID, questId);
         });
@@ -580,10 +600,15 @@ public class QuestManager {
                     if(!plugin.getProgressManager().itemMatchesNbt(item, requiredNBT)) continue;
                 }
                 int removeCount = Math.min(item.getAmount(), amountToRemove);
-                item.setAmount(item.getAmount() - removeCount);
+                if((item.getAmount() - removeCount) <= 0) {
+                    player.getInventory().setItem(i, null);
+                }else {
+                    item.setAmount(item.getAmount() - removeCount);
+                }
                 amountToRemove -= removeCount;
             }
         }
+        player.updateInventory();
     }
     public void completeQuestAsync(UUID playerUUID, int questId) {
         Quest quest = getQuest(questId);
@@ -616,7 +641,7 @@ public class QuestManager {
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1, 1);
                 player.sendMessage("§7§m─────────────────────────────");
                for(QuestReward reward : quest.getRewards()) {
-                   player.sendMessage(reward.getDescription().getOrDefault(playerLocale, "").replace("&", "§"));
+                   player.sendMessage("§a+ " + reward.getDescription().getOrDefault(playerLocale, "").replace("&", "§"));
                }
                 player.sendMessage("§7§m─────────────────────────────");
                 player.sendMessage(quest.getCompletionMessage().getOrDefault(playerLocale, "").replace("&", "§"));

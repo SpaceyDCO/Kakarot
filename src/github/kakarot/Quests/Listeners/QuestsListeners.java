@@ -56,6 +56,14 @@ public class QuestsListeners implements Listener {
             checkCollectItemsObjectives(player);
         }, 1L);
     }
+    public void forceInventoryCheck(IEntity<?> killer) {
+        if(killer == null) return;
+        if(!(killer instanceof IPlayer<?>)) return;
+        this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+            IPlayer<?> iPlayer = (IPlayer<?>) killer;
+            checkCollectItemsObjectives(Bukkit.getPlayer(UUID.fromString(iPlayer.getUniqueID())));
+        }, 3L);
+    }
     public void onNpcDied(ICustomNpc<?> npc, IEntity<?> killer) {
         if(npc == null || killer == null) {
             plugin.getLogger().warning("Critical ERROR: NPC or Player killer with null value");

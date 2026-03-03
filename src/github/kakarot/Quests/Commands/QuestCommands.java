@@ -172,34 +172,30 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         PlayerQuestProgress progress = questManager.getPlayerQuestProgress(player.getUniqueId(), questId);
         String playerLocale = Main.instance.getSettingsManager().getPlayerLanguage().getOrDefault(player.getUniqueId(), "es");
         player.sendMessage("§8§m─────────────────────────────");
-        player.sendMessage("§6§l " + quest.getName().getOrDefault(playerLocale, "Misión") + " §7(#" + questId + ")");
+        player.sendMessage("§6§l" + quest.getName().getOrDefault(playerLocale, "Misión") + " §7(#" + questId + ")");
         player.sendMessage("§f" + quest.getDescription().getOrDefault(playerLocale, ""));
         player.sendMessage("");
-        player.sendMessage("§e§lObjectives:");
+        player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.info-objectives"));
         for(int i = 0; i < quest.getObjectives().size(); i++) {
             QuestObjective obj = quest.getObjectives().get(i);
             int currentProgress = progress != null ? progress.getObjectiveProgress()[i] : 0;
             boolean complete = obj.isComplete(currentProgress);
             String checkmark = complete ? "§a✓" : "§7○";
             String objMark;
-            String target;
+            String target = obj.getObjectiveInfo().getPlaceholderName() != null && !obj.getObjectiveInfo().getPlaceholderName().isEmpty()
+                    ? obj.getObjectiveInfo().getPlaceholderName().replace("&", "§") : obj.getObjectiveInfo().getTarget();
             switch(obj.getType()) {
                 case KILL_MOBS:
                     objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-kill");
-                    target = obj.getObjectiveInfo().getTarget();
                     break;
                 case TALK_TO_NPC:
                     objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-talk");
-                    target = obj.getObjectiveInfo().getTarget();
                     break;
                 case COLLECT_ITEMS:
                     objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-collect");
-                    ItemStack item = new ItemStack(obj.getObjectiveInfo().getItemId(), 1, (short) 1, obj.getObjectiveInfo().getDataValue());
-                    target = item.toString(); //TODO: change into something cleaner
                     break;
                 default:
                     objMark = questManager.getLangMessage(player.getUniqueId(), "commands.info-objective-custom");
-                    target = obj.getObjectiveInfo().getTarget();
                     break;
             }
             String progressText = "§7(" + currentProgress + "/" + obj.getRequired() + ")";
@@ -216,7 +212,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         }
         player.sendMessage("§8§m─────────────────────────────");
         if(progress != null && progress.getStatus() == QuestStatus.IN_PROGRESS) {
-            player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.info-track-suggestion"));
+            player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.info-track-suggestion", "%quest_id%", questIdStr));
         }
     }
     private void trackQuest(Player player, String questIdStr) {
@@ -251,8 +247,15 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
                 break;
             }
         }
-        if(nonCompletedObjIndex == -1) {
+        //If quest is completed and is not TURN IN, clear quest arrow
+        if(nonCompletedObjIndex == -1 && !quest.isTurnIn()) {
             KakarotModAPI.clearQuestTarget(player.getName());
+            return;
+        }
+        //If quest is completed BUT is turn in, instead render quest completed arrow...
+        if(nonCompletedObjIndex == -1) {
+            NpcTurnInDetails details = quest.getNpcTurnInDetails();
+            KakarotModAPI.setQuestTarget(player.getName(), details.getX(), details.getY(), details.getZ(), questManager.getLangMessage(player.getUniqueId(), "manager.quest_completed_label"), HexcodeUtils.parseColor(details.getArrowColor()));
             return;
         }
         QuestObjective obj = quest.getObjectives().get(nonCompletedObjIndex);
@@ -264,9 +267,11 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         KakarotModAPI.setQuestTarget(player.getName(), info.getX(), info.getY(), info.getZ(), label, HexcodeUtils.parseColor(info.getArrowColor()), HexcodeUtils.parseColor(info.getLabelColor()));
         String trackingMsg = questManager.getLangMessage(player.getUniqueId(), "commands.now_tracking", "%quest_name%", quest.getName(playerLocale));
         player.sendMessage(trackingMsg);
+        Main.instance.getQuestManager().playerQuestTrack.put(player.getUniqueId(), questId);
     }
     private void untrackQuest(Player player) {
         KakarotModAPI.clearQuestTarget(player.getName());
+        Main.instance.getQuestManager().playerQuestTrack.remove(player.getUniqueId());
         player.sendMessage(Main.instance.getQuestManager().getLangMessage(player.getUniqueId(), "commands.stop_tracking"));
     }
     private void addQuestToPlayer(CommandSender sender, String playerName, String questIdStr) {

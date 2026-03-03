@@ -8,6 +8,9 @@ import github.kakarot.Parties.Events.PlayerLeavePartyEvent;
 import github.kakarot.Parties.Listeners.PlayerChat;
 import github.kakarot.Parties.Managers.IPartyManager;
 import github.kakarot.Parties.Managers.PartyManager;
+import github.kakarot.Phasing.Commands.PhasingCommandExecutor;
+import github.kakarot.Phasing.Listeners.Listeners;
+import github.kakarot.Phasing.PhasingConfigManager;
 import github.kakarot.Quests.Commands.QuestCommands;
 import github.kakarot.Quests.Listeners.QuestsListeners;
 import github.kakarot.Quests.Managers.*;
@@ -25,7 +28,7 @@ import github.kakarot.Trivias.TriviasData;
 import lombok.Getter;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntity;
-import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.event.INpcEvent;
 import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.handler.ICloneHandler;
 import noppes.npcs.scripted.NpcAPI;
@@ -77,6 +80,11 @@ public class Main extends JavaPlugin {
     @Getter SettingsManager settingsManager;
     //Quests
 
+    //Phasing
+    @Getter private Listeners phasingListeners;
+    @Getter private PhasingConfigManager phasingConfigManager;
+    //Phasing
+
     @Getter private IPacketHandler packetHandler;
 
     private final CommandFramework commandFramework = new CommandFramework(this);
@@ -127,6 +135,14 @@ public class Main extends JavaPlugin {
         getCommand("quest").setExecutor(new QuestCommands());
         //Quests
 
+        //Phasing
+        this.phasingConfigManager = new PhasingConfigManager(this);
+        this.phasingConfigManager.loadPhasedNPCsToCache();
+        this.phasingListeners = new Listeners(this);
+        getServer().getPluginManager().registerEvents(this.phasingListeners, this);
+        getCommand("phasing").setExecutor(new PhasingCommandExecutor(this));
+        //Phasing
+
         this.packetHandler = new PacketHandler();
         classesRegistration.loadCommands("github.kakarot.Commands");
         Bukkit.getConsoleSender().sendMessage("Activated plugin Kakarot");
@@ -159,6 +175,8 @@ public class Main extends JavaPlugin {
         PlayerPickupItemEvent.getHandlerList().unregister(this.questsListeners);
         this.databaseConfig.close();
         //Quests
+
+        PlayerJoinEvent.getHandlerList().unregister(this.phasingListeners);
     }
 
     //TRIVIA
@@ -275,4 +293,12 @@ public class Main extends JavaPlugin {
         this.questsListeners.onPlayerNpcInteract((ICustomNpc<?>) event.getTarget(), event.getPlayer());
     }
     //RAIDS CNPC EVENTS
+    //Custom methods to be used as bridge (mainly for bug fixes)
+    public boolean checkPhasingNPC(IPlayerEvent.InteractEvent event) {
+        return this.phasingListeners.checkPhasingNPC(event);
+    }
+    public void forceInventoryCheck(NpcEvent.DiedEvent event) {
+        this.questsListeners.forceInventoryCheck(event.getDamageSource().getTrueSource());
+    }
+    //Custom methods to be used as bridge (mainly for bug fixes)
 }

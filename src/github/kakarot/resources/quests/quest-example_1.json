@@ -13,7 +13,8 @@
       "type": "COLLECT_ITEMS",
       "objectiveInfo": {
         "target": "351:1",
-        "title": ""
+        "title": "",
+        "placeholderName": "&cTinte Rojo"
       },
       "trackingInfo": {
         "x": 623,
@@ -55,8 +56,8 @@
       "type": "COMMAND",
       "value": "give {player} diamond 64",
       "description": {
-        "en": "+ 64 Diamonds",
-        "es": "+ 64 Diamantes"
+        "en": "64 Diamonds",
+        "es": "64 Diamantes"
       }
     }
   ],
