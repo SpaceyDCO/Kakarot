@@ -50,6 +50,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
@@ -299,6 +300,9 @@ public class Main extends JavaPlugin {
     }
     public void forceInventoryCheck(NpcEvent.DiedEvent event) {
         this.questsListeners.forceInventoryCheck(event.getDamageSource().getTrueSource());
+    }
+    public String getPlayerLanguage(String playerUUID) {
+        return this.getSettingsManager().getPlayerLanguage().getOrDefault(UUID.fromString(playerUUID), "es");
     }
     //Custom methods to be used as bridge (mainly for bug fixes)
 }
