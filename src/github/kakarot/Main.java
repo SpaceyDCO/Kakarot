@@ -304,5 +304,18 @@ public class Main extends JavaPlugin {
     public String getPlayerLanguage(String playerUUID) {
         return this.getSettingsManager().getPlayerLanguage().getOrDefault(UUID.fromString(playerUUID), "es");
     }
+
+    /**
+     * Checks whether a player has completed a quest or not
+     * @return 0 if the player has the quest but hasn't completed it
+     * 1 if the player has completed the quest
+     * -1 if the player doesn't have that quest
+     */
+    public int checkQuestProgress(String playerUUID, int questId) {
+        UUID uuid = UUID.fromString(playerUUID);
+        if(questManager.hasPickedUpQuest(uuid, questId) && !questManager.hasCompletedQuest(uuid, questId)) return 0;
+        if(questManager.hasCompletedQuest(uuid, questId)) return 1;
+        return -1;
+    }
     //Custom methods to be used as bridge (mainly for bug fixes)
 }
