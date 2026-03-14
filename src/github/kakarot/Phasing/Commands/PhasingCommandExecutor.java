@@ -16,6 +16,7 @@ public class PhasingCommandExecutor implements CommandExecutor {
     public PhasingCommandExecutor(Main plugin) {
         this.plugin = plugin;
     }
+    //Players can use "_" which will be replaced by spaces
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

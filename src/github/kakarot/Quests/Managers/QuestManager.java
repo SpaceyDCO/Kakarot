@@ -661,7 +661,9 @@ public class QuestManager {
             try {
                 switch(reward.getType()) {
                     case PERMISSION:
-                        plugin.getLogger().info("Player " + playerName + " gained permission: " + reward.getValue()); //TODO: add actual permission addition
+                        String permission = reward.getValue();
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + playerName + " permission set " + permission + " true");
+                        plugin.getLogger().info("Player " + playerName + " gained permission: " + reward.getValue());
                         break;
                     case COMMAND:
                         String command = reward.getResolvedValue(playerName);

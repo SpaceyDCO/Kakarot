@@ -60,7 +60,6 @@ public class PlayerProgressManager {
             if(count >= objective.getRequired()) {
                 return true;
             }
-            count += item.getAmount();
         }
         return false;
     }
