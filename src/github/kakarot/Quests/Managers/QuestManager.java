@@ -518,7 +518,9 @@ public class QuestManager {
                     Player player = Bukkit.getPlayer(playerUUID);
                     if(player != null && player.isOnline()) {
                         int percentage = objective.getProgressCompletedAsPercentage(newProgress);
-                        player.sendMessage("§7[Quest] §f" + objective.getObjectiveInfo().getTarget() + " §7(" + percentage + "%)");
+                        String target = (objective.getObjectiveInfo().getPlaceholderName() == null || objective.getObjectiveInfo().getPlaceholderName().isEmpty()) ?
+                                objective.getObjectiveInfo().getTarget() : objective.getObjectiveInfo().getPlaceholderName().replace("&", "§");
+                        player.sendMessage("§7[Quest] §f" + target + " §7(" + percentage + "%)");
                         if(progress.getObjectiveProgress()[objectiveIndex] >= objective.getRequired()) {
                             //Objective completed, update tracking to next objective...
                             if(this.playerQuestTrack.containsKey(playerUUID) && this.playerQuestTrack.getOrDefault(playerUUID, -1) == questId) updateTrackingToNextObj(progress, quest, player);
