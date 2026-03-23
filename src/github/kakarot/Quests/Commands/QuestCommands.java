@@ -316,7 +316,11 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         }
         questManager.addQuestToPlayer(target.getUniqueId(), questId);
         sender.sendMessage("§aAdded quest #" + questIdStr + " to " + playerName);
-        if(autoTrack) trackQuest(target, questIdStr);
+        if(autoTrack) {
+            Main.instance.getServer().getScheduler().runTaskLater(Main.instance, () -> {
+                trackQuest(target, questIdStr);
+            }, 20L);
+        }
     }
     private void completeQuestForPlayer(CommandSender sender, String playerName, String questIdStr) {
         Player target = Bukkit.getPlayer(playerName);
