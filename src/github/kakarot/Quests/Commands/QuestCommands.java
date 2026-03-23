@@ -31,7 +31,12 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
             switch (subcommand) {
                 case "add":
                     if (args.length < 3) {
-                        sender.sendMessage("§cUsage: /quest add <player> <quest_id>");
+                        sender.sendMessage("§cUsage: /quest add <player> <quest_id> [auto-track:true|false]");
+                        return true;
+                    }
+                    if(args.length > 3) {
+                        if(Boolean.parseBoolean(args[3])) addQuestToPlayer(sender, args[1], args[2], Boolean.parseBoolean(args[3]));
+                        else sender.sendMessage("§cAuto-track value must be true or false.");
                         return true;
                     }
                     addQuestToPlayer(sender, args[1], args[2]);
@@ -204,7 +209,8 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         player.sendMessage("");
         player.sendMessage(questManager.getLangMessage(player.getUniqueId(), "commands.info-rewards"));
         for(QuestReward questReward : quest.getRewards()) {
-            player.sendMessage("§a+ §f" + getRewardDescription(playerLocale, questReward));
+            String description = getRewardDescription(playerLocale, questReward);
+            if(!description.isEmpty()) player.sendMessage(description);
         }
         if(quest.isRepeatable()) {
             player.sendMessage("");
@@ -275,6 +281,9 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         player.sendMessage(Main.instance.getQuestManager().getLangMessage(player.getUniqueId(), "commands.stop_tracking"));
     }
     private void addQuestToPlayer(CommandSender sender, String playerName, String questIdStr) {
+        addQuestToPlayer(sender, playerName, questIdStr, false);
+    }
+    private void addQuestToPlayer(CommandSender sender, String playerName, String questIdStr, boolean autoTrack) {
         Player target = Bukkit.getPlayer(playerName);
         QuestManager questManager = Main.instance.getQuestManager();
         if(target == null || !target.isOnline()) {
@@ -307,6 +316,7 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
         }
         questManager.addQuestToPlayer(target.getUniqueId(), questId);
         sender.sendMessage("§aAdded quest #" + questIdStr + " to " + playerName);
+        trackQuest(target, questIdStr);
     }
     private void completeQuestForPlayer(CommandSender sender, String playerName, String questIdStr) {
         Player target = Bukkit.getPlayer(playerName);
