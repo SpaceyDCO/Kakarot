@@ -24,47 +24,47 @@ public class PartyCommands extends BaseCommand {
     @Override
     @Command(name = "party", aliases = "p")
     public void onCommand(CommandArgs command) throws IOException {
-        CommandSender sender = command.getSender();
-        String[] args = command.getArgs();
-        Player player = (Player) sender;
-        IPartyManager partyManager = Main.instance.getPartyManager();
-
-        if(args.length == 0) {
-            sendHelpMessage(player);
-            return;
-        }
-        switch(args[0].toLowerCase()) {
-            case "invite":
-                handleInviteCommand(player, args, partyManager);
-                break;
-            case "accept":
-                partyManager.acceptInvite(player);
-                break;
-            case "deny":
-                partyManager.denyInvite(player);
-                break;
-            case "leave":
-                partyManager.leaveParty(player);
-                break;
-            case "kick":
-                handleKickCommand(player, args, partyManager);
-                break;
-            case "list":
-                handleListCommand(player, partyManager);
-                break;
-            case "disband":
-                handleDisbandCommand(player, partyManager);
-                break;
-            case "chat":
-                handleChatCommand(player, args, partyManager);
-                break;
-            case "reload":
-                handleReloadCommand(player);
-                break;
-            default:
-                sendHelpMessage(player);
-                break;
-        }
+//        CommandSender sender = command.getSender();
+//        String[] args = command.getArgs();
+//        Player player = (Player) sender;
+//        IPartyManager partyManager = Main.instance.getPartyManager();
+//
+//        if(args.length == 0) {
+//            sendHelpMessage(player);
+//            return;
+//        }
+//        switch(args[0].toLowerCase()) {
+//            case "invite":
+//                handleInviteCommand(player, args, partyManager);
+//                break;
+//            case "accept":
+//                partyManager.acceptInvite(player);
+//                break;
+//            case "deny":
+//                partyManager.denyInvite(player);
+//                break;
+//            case "leave":
+//                partyManager.leaveParty(player);
+//                break;
+//            case "kick":
+//                handleKickCommand(player, args, partyManager);
+//                break;
+//            case "list":
+//                handleListCommand(player, partyManager);
+//                break;
+//            case "disband":
+//                handleDisbandCommand(player, partyManager);
+//                break;
+//            case "chat":
+//                handleChatCommand(player, args, partyManager);
+//                break;
+//            case "reload":
+//                handleReloadCommand(player);
+//                break;
+//            default:
+//                sendHelpMessage(player);
+//                break;
+//        }
     }
     private void sendHelpMessage(Player player) {
         player.sendMessage(CC.translate("&9--- Party Commands ---"));
