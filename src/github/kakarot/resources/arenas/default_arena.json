@@ -1,6 +1,7 @@
 {
   "arenaName": "Default Tower (Example)",
   "scenarioName": "default_scenario",
+  "cooldownSeconds": 3600,
   "worldName": "world",
   "maxPlayers": 4,
   "playerSpawnLocation": {
