@@ -23,9 +23,9 @@ public class RaidCommands extends BaseCommand {
         Player player = (Player) sender;
         if(args.length == 0) {
             player.sendMessage(CC.translate("&5======== Commands ========"));
-            player.sendMessage(CC.translate("&d/raid reload"));
-            player.sendMessage(CC.translate("&d/raid reloadArena <arena_name>"));
-            player.sendMessage(CC.translate("&d/raid reloadScenario <scenario_name>"));
+            player.sendMessage(CC.translate("&d/kraid reload"));
+            player.sendMessage(CC.translate("&d/kraid reloadArena <arena_name>"));
+            player.sendMessage(CC.translate("&d/kraid reloadScenario <scenario_name>"));
             return;
         }
         switch(args[0].toLowerCase()) {
@@ -40,9 +40,9 @@ public class RaidCommands extends BaseCommand {
                 break;
             default:
                 player.sendMessage(CC.translate("&5======== Commands ========"));
-                player.sendMessage(CC.translate("&d/raid reload"));
-                player.sendMessage(CC.translate("&d/raid reloadArena <arena_name>"));
-                player.sendMessage(CC.translate("&d/raid reloadScenario <scenario_name>"));
+                player.sendMessage(CC.translate("&d/kraid reload"));
+                player.sendMessage(CC.translate("&d/kraid reloadArena <arena_name>"));
+                player.sendMessage(CC.translate("&d/kraid reloadScenario <scenario_name>"));
         }
     }
     private void handleReloadCommand(Player player) {
@@ -55,7 +55,7 @@ public class RaidCommands extends BaseCommand {
     private void handleArenaReloadCommand(CommandSender sender, String[] args) {
         if(sender.isOp()) {
             if(args.length < 2) {
-                sender.sendMessage("Usage: /raid reloadArena <arena_name>");
+                sender.sendMessage("Usage: /kraid reloadArena <arena_name>");
                 return;
             }
             String arenaName = args[1];
@@ -65,7 +65,7 @@ public class RaidCommands extends BaseCommand {
     private void handleScenarioReloadCommand(CommandSender sender, String[] args) {
         if(sender.isOp()) {
             if(args.length < 2) {
-                sender.sendMessage("Usage: /raid reloadScenario <scenario_name>");
+                sender.sendMessage("Usage: /kraid reloadScenario <scenario_name>");
                 return;
             }
             String scenarioName = args[1];
