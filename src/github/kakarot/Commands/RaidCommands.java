@@ -16,7 +16,7 @@ public class RaidCommands extends BaseCommand {
     private final MessageManager messageManager = Main.instance.getMessageManager();
     private final RaidManager raidManager = Main.instance.getRaidManager();
     @Override
-    @Command(name = "raids", aliases = "raid", isAdminOnly = true)
+    @Command(name = "kraids", aliases = "kraid", isAdminOnly = true)
     public void onCommand(CommandArgs command) throws IOException {
         CommandSender sender = command.getSender();
         String[] args = command.getArgs();

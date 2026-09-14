@@ -55,6 +55,9 @@ public class QuestCommands implements CommandExecutor, TabCompleter {
                     }
                     if(args[1].equalsIgnoreCase("reload")) reloadQuests(sender);
                     return true;
+                case "arrowtest":
+                    KakarotModAPI.setQuestTarget(sender.getName(), Double.parseDouble(args[1]), Double.parseDouble(args[2]), Double.parseDouble(args[3]), "Test", HexcodeUtils.parseColor(args[4]), HexcodeUtils.parseColor(args[5]));
+                    return true;
             }
             if(!(sender instanceof Player)) {
                 sender.sendMessage("§cUnknown subcommand: " + subcommand);
