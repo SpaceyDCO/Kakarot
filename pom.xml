@@ -15,15 +15,27 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <kakarot.output.dir>${project.build.directory}</kakarot.output.dir>
     </properties>
 
     <build>
         <resources>
             <resource>
-                <directory>src/main/resources</directory>
+                <directory>src/github/kakarot/resources</directory>
                 <filtering>true</filtering>
             </resource>
         </resources>
+        <sourceDirectory>src</sourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <outputDirectory>${kakarot.output.dir}</outputDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 
     <dependencies>
@@ -89,7 +101,8 @@
             <groupId>fr.minuskube.inv</groupId>
             <artifactId>smart-invs</artifactId>
             <version>1.2.7</version>
-            <scope>provided</scope>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/SmartInvs-1.2.7.jar</systemPath>
         </dependency>
 
         <dependency>
